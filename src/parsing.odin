@@ -104,7 +104,7 @@ collect_specs_recursive :: proc(dir: string, specs: ^[dynamic]Spec_Info) {
 	}
 
 	for f in files {
-		if is_directory(f.mode) {
+		if f.is_dir {
 			spec_path := filepath.join({dir, f.name})
 			prd_path := filepath.join({spec_path, "PRD.md"})
 			tasks_path := filepath.join({spec_path, "tasks.md"})

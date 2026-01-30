@@ -24,7 +24,7 @@ epics_exist :: proc() -> bool {
 	}
 
 	for f in files {
-		if is_directory(f.mode) {
+		if f.is_dir {
 			return true
 		}
 	}
@@ -48,7 +48,7 @@ collect_epic_specs :: proc(epic_path: string) -> []string {
 	}
 
 	for f in files {
-		if is_directory(f.mode) {
+		if f.is_dir {
 			spec_path := filepath.join({epic_path, f.name})
 			prd_path := filepath.join({spec_path, "PRD.md"})
 			tasks_path := filepath.join({spec_path, "tasks.md"})
@@ -164,7 +164,7 @@ view_specs_recursive :: proc(dir: string, prefix: string) {
 	}
 
 	for f in files {
-		if is_directory(f.mode) {
+		if f.is_dir {
 			fmt.printfln("%s%s/", prefix, f.name)
 			view_specs_recursive(filepath.join({dir, f.name}), fmt.tprintf("%s  ", prefix))
 		} else if f.name == "PRD.md" {
@@ -209,7 +209,7 @@ view_cmd :: proc() {
 			defer os.close(fd)
 			files, _ := os.read_dir(fd, 0)
 			for f in files {
-				if is_directory(f.mode) {
+				if f.is_dir {
 					fmt.printfln("  %s/", f.name)
 					epic_path := filepath.join({epics_dir, f.name})
 					view_specs_recursive(epic_path, "    ")

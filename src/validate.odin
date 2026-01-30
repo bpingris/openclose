@@ -23,7 +23,7 @@ find_spec_path :: proc(spec_name: string) -> (string, bool) {
 			defer os.close(fd)
 			files, _ := os.read_dir(fd, 0)
 			for f in files {
-				if is_directory(f.mode) {
+				if f.is_dir {
 					epic_spec_path := filepath.join({epics_dir, f.name, spec_slug})
 					if os.exists(epic_spec_path) {
 						return epic_spec_path, true

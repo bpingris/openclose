@@ -30,7 +30,7 @@ summary_cmd :: proc() {
 			defer os.close(fd)
 			files, _ := os.read_dir(fd, 0)
 			for f in files {
-				if is_directory(f.mode) {
+				if f.is_dir {
 					epic_path := filepath.join({epics_dir, f.name})
 					epic_info := collect_epic_info(epic_path, f.name)
 					append(&all_epics, epic_info)
