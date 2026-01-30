@@ -40,6 +40,41 @@ find_item :: proc(name: string) -> Search_Result {
 	return result
 }
 
+// Archive a spec by copying only PRD.md to the archive
+archive_spec_prd_only :: proc(source_path: string, archive_dest: string) -> os.Error {
+	// Check if PRD.md exists in source
+	prd_source := filepath.join({source_path, "PRD.md"})
+	if !os.exists(prd_source) {
+		return os.General_Error.Not_Exist
+	}
+
+	// Create archive directory
+	err := make_directory_recursive(archive_dest)
+	if err != nil {
+		return err
+	}
+
+	// Copy only PRD.md
+	prd_dest := filepath.join({archive_dest, "PRD.md"})
+	content, ok := os.read_entire_file(prd_source)
+	if !ok {
+		return os.General_Error.Not_Exist
+	}
+
+	file, file_err := os.open(prd_dest, os.O_CREATE | os.O_WRONLY | os.O_TRUNC, 0o644)
+	if file_err != nil {
+		return file_err
+	}
+	defer os.close(file)
+
+	_, write_err := os.write(file, content)
+	if write_err != nil {
+		return write_err
+	}
+
+	return nil
+}
+
 // Archive command handler
 archive_cmd :: proc() {
 	if len(os.args) < 3 || os.args[2] == "help" || os.args[2] == "--help" || os.args[2] == "-h" {
@@ -50,11 +85,11 @@ archive_cmd :: proc() {
 		fmt.println(
 			"  openclose archive <name>                   - Auto-detect and archive (searches specs/ and epics/)",
 		)
-		fmt.println("  openclose archive specs/<spec-name>        - Archive standalone spec")
-		fmt.println("  openclose archive epics/<epic>/<spec>      - Archive epic spec")
+		fmt.println("  openclose archive specs/<spec-name>        - Archive standalone spec (PRD.md only)")
+		fmt.println("  openclose archive epics/<epic>/<spec>      - Archive epic spec (PRD.md only)")
 		fmt.println("  openclose archive epics/<epic>             - Archive entire epic")
 		fmt.println("")
-		fmt.println("Archived items maintain their structure in .openclose/archive/")
+		fmt.println("Archived specs only preserve PRD.md, epics preserve full structure")
 		return
 	}
 
@@ -126,39 +161,72 @@ archive_cmd :: proc() {
 		}
 	}
 
-	// Check if destination already exists
+	// Check if destination already exists and remove it (for re-archiving scenarios)
 	if os.exists(archive_dest) {
-		fmt.eprintfln("Archive destination already exists: %s", archive_dest)
-		fmt.println("Remove it first or use a different name")
-		return
-	}
-
-	// Create parent directories
-	parent_dir := filepath.dir(archive_dest)
-	if parent_dir != "" && parent_dir != "." {
-		err := make_directory_recursive(parent_dir)
+		err := remove_directory_recursive(archive_dest)
 		if err != nil {
-			fmt.eprintfln("Error creating archive directory: %s", err)
+			fmt.eprintfln("Error removing existing archive: %s", err)
 			return
 		}
 	}
 
-	// Copy the directory to archive
+	// Determine if this is a spec (PRD.md only) or epic (full copy)
+	is_spec := false
+	if strings.has_prefix(display_path, "specs/") {
+		is_spec = true
+	} else if strings.has_prefix(display_path, "epics/") {
+		// Check if it's a spec within an epic (epics/<epic>/<spec>) or an epic itself
+		parts := strings.split(display_path, "/")
+		if len(parts) >= 3 {
+			// It's a spec within an epic: epics/<epic>/<spec>
+			is_spec = true
+		}
+		// If len(parts) == 2, it's an epic itself: epics/<epic>
+	}
+
 	fmt.printfln("Archiving %s...", display_path)
-	err := copy_directory(full_source, archive_dest)
-	if err != nil {
-		fmt.eprintfln("Failed to copy to archive: %s", err)
-		return
+
+	if is_spec {
+		// Archive spec with PRD.md only
+		err := archive_spec_prd_only(full_source, archive_dest)
+		if err == os.General_Error.Not_Exist {
+			fmt.eprintfln("Cannot archive spec: PRD.md not found in %s", display_path)
+			return
+		}
+		if err != nil {
+			fmt.eprintfln("Failed to archive spec: %s", err)
+			return
+		}
+	} else {
+		// Archive epic with full directory copy
+		parent_dir := filepath.dir(archive_dest)
+		if parent_dir != "" && parent_dir != "." {
+			err := make_directory_recursive(parent_dir)
+			if err != nil {
+				fmt.eprintfln("Error creating archive directory: %s", err)
+				return
+			}
+		}
+
+		err := copy_directory(full_source, archive_dest)
+		if err != nil {
+			fmt.eprintfln("Failed to copy to archive: %s", err)
+			return
+		}
 	}
 
 	// Remove the original
-	err = remove_directory_recursive(full_source)
+	err := remove_directory_recursive(full_source)
 	if err != nil {
-		fmt.eprintfln("Warning: copied to archive but failed to remove original: %s", err)
+		fmt.eprintfln("Warning: archived but failed to remove original: %s", err)
 		fmt.printfln("Archived to: %s", archive_dest)
 		fmt.println("Please manually remove the original directory")
 		return
 	}
 
-	fmt.printfln("✓ Archived: %s -> %s", display_path, archive_dest)
+	if is_spec {
+		fmt.printfln("✓ Archived (PRD.md only): %s -> %s", display_path, archive_dest)
+	} else {
+		fmt.printfln("✓ Archived: %s -> %s", display_path, archive_dest)
+	}
 }
