@@ -9,12 +9,16 @@ print_help :: proc() {
 	fmt.println("Commands:")
 	fmt.println("  init                          Initialize .openclose directory with AGENTS.md")
 	fmt.println("  create <name>                 Create a new spec")
-	fmt.println("  create <name> --epic <epic>   Create a new spec attached to an epic (creates epic if needed)")
+	fmt.println(
+		"  create <name> --epic <epic>   Create a new spec attached to an epic (creates epic if needed)",
+	)
 	fmt.println("  epic <name>                   Create a new epic")
 	fmt.println("  view                          View all specs and epics")
 	fmt.println("  summary                       Show progress summary of all specs and epics")
 	fmt.println("  validate <name>               Validate a spec's file formats")
-	fmt.println("  archive <path>                Archive specs/epics (e.g., specs/name or epics/epic/name)")
+	fmt.println(
+		"  archive <path>                Archive specs/epics (e.g., specs/name or epics/epic/name)",
+	)
 	fmt.println("  help                          Show this help message")
 }
 
@@ -23,6 +27,8 @@ main :: proc() {
 		print_help()
 		return
 	}
+
+
 	command := os.args[1]
 
 	switch command {

@@ -1,4 +1,4 @@
-<!-- OPENCLOSE INSTRUCTIONS -->-->
+<!-- START OPENCLOSE INSTRUCTIONS -->
 # openclose instructions
 
 These instructions are for AI assistants working in this project.
@@ -12,4 +12,4 @@ Use `@/.openclose/AGENTS.md` to learn:
 - How to create and apply change proposals
 - Spec format and conventions
 - Project structure and guidelines
-<!-- OPENCLOSE INSTRUCTIONS -->
+<!-- END OPENCLOSE INSTRUCTIONS -->

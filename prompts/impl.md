@@ -1,7 +1,3 @@
----
-title: oc-impl
-description: Implement a given spec
----
 <user-request>
 $ARGUMENTS
 </user-request>
@@ -18,9 +14,7 @@ Implement the spec given by the user following these steps:
 
 Once you have identified the spec, **you must** validate it:
 
-```bash
-openclose validate <spec-name>
-```
+    openclose validate <spec-name>
 
 **If validation fails**:
 1. **You must** alert the user that the spec is invalid
@@ -33,7 +27,7 @@ openclose validate <spec-name>
 3. **You must** wait for user response before proceeding
 4. If user asks you to fix it, correct the errors and re-validate until it passes
 
-**You must not** start implementation until the spec is fully valid.
+**You must not** start implementation until the spec is valid.
 
 ## Step 2: Read and Understand the Spec
 

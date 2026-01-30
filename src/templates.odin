@@ -21,6 +21,7 @@ How to build, run, and test the project locally.
 How changes should be made, tested, and reviewed.
 `
 
+
 SPEC_TEMPLATE :: `# {name}
 
 Created: {date}
@@ -40,20 +41,22 @@ Any technical considerations, approaches, or constraints.
 - Link to designs, docs, references
 `
 
+
 TASKS_TEMPLATE :: `# Tasks for {name}
 
 ## Phase 1: Foundation
-- [ ] Task 1 - Initial setup
-- [ ] Task 2 - Core structure
+- [ ] Initial setup
+- [ ] Core structure
 
 ## Phase 2: Implementation
-- [ ] Task 3 - Primary feature
-- [ ] Task 4 - Secondary feature
+- [ ] Primary feature
+- [ ] Secondary feature
 
 ## Phase 3: Polish
-- [ ] Task 5 - Testing
-- [ ] Task 6 - Documentation
+- [ ] Testing
+- [ ] Documentation
 `
+
 
 SCENARIOS_TEMPLATE :: `# Scenarios for {name}
 
@@ -82,6 +85,7 @@ SCENARIOS_TEMPLATE :: `# Scenarios for {name}
 **And** log the failure for debugging
 `
 
+
 EPIC_TEMPLATE :: `# Epic: {name}
 
 Created: {date}
@@ -100,105 +104,9 @@ Detailed description of what this epic encompasses.
 - [Spec name](./spec-name/)
 `
 
-// Agent command file templates
-OC_CREATE_COMMAND :: `# OpenCode: Create Spec
 
-Create a new spec for the current project.
-
-## Steps
-1. Run the create command
-2. Provide spec name
-3. Fill in PRD details
-
-## Usage
-    odin run ./src -- create <epic-name>
-`
-
-OC_IMPL_COMMAND :: `# OpenCode: Implement Spec
-
-Implement the spec given by the user.
-
-## Instructions
-1. Read the spec from .openclose/specs/
-2. Validate the spec is complete
-3. Follow the tasks and scenarios
-4. Mark tasks as completed
-
-## Usage
-User provides spec name to implement
-`
-
-OC_ARCHIVE_COMMAND :: `# OpenCode: Archive Spec
-
-Archive a completed or cancelled spec.
-
-## Steps
-1. Move spec to archive folder
-2. Preserve all files
-3. Update references
-
-## Usage
-    odin run ./src -- archive <spec-name>
-`
-
-CLAUDE_CREATE_COMMAND :: `# Claude Code: Create Spec
-
-Create a new spec for the current project.
-
-## Steps
-1. Run the create command
-2. Provide spec name
-3. Fill in PRD details
-`
-
-CLAUDE_IMPL_COMMAND :: `# Claude Code: Implement Spec
-
-Implement the spec given by the user.
-
-## Instructions
-1. Read the spec from .openclose/specs/
-2. Validate the spec is complete
-3. Follow the tasks and scenarios
-4. Mark tasks as completed
-`
-
-CLAUDE_ARCHIVE_COMMAND :: `# Claude Code: Archive Spec
-
-Archive a completed or cancelled spec.
-
-## Steps
-1. Move spec to archive folder
-2. Preserve all files
-3. Update references
-`
-
-CURSOR_CREATE_COMMAND :: `# Cursor: Create Spec
-
-Create a new spec for the current project.
-
-## Steps
-1. Run the create command
-2. Provide spec name
-3. Fill in PRD details
-`
-
-CURSOR_IMPL_COMMAND :: `# Cursor: Implement Spec
-
-Implement the spec given by the user.
-
-## Instructions
-1. Read the spec from .openclose/specs/
-2. Validate the spec is complete
-3. Follow the tasks and scenarios
-4. Mark tasks as completed
-`
-
-CURSOR_ARCHIVE_COMMAND :: `# Cursor: Archive Spec
-
-Archive a completed or cancelled spec.
-
-## Steps
-1. Move spec to archive folder
-2. Preserve all files
-3. Update references
-`
+// Embedded prompt files - loaded at compile time using #load directive
+// These are shared across all agents, only frontmatter differs
+CREATE_PROMPT :: #load("../prompts/create.md", string)
+IMPL_PROMPT :: #load("../prompts/impl.md", string)
+ARCHIVE_PROMPT :: #load("../prompts/archive.md", string)

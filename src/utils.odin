@@ -50,7 +50,7 @@ make_directory_recursive :: proc(path: string) -> os.Error {
 	if os.exists(path) {
 		return nil
 	}
-	
+
 	parent := filepath.dir(path)
 	if parent != "" && parent != "." && parent != "/" {
 		err := make_directory_recursive(parent)
@@ -58,7 +58,7 @@ make_directory_recursive :: proc(path: string) -> os.Error {
 			return err
 		}
 	}
-	
+
 	return os.make_directory(path)
 }
 
@@ -69,25 +69,25 @@ copy_directory :: proc(src: string, dst: string) -> os.Error {
 	if err != nil {
 		return err
 	}
-	
+
 	// Open source directory
 	fd, fd_err := os.open(src, os.O_RDONLY)
 	if fd_err != nil {
 		return fd_err
 	}
 	defer os.close(fd)
-	
+
 	// Read entries
 	entries, entries_err := os.read_dir(fd, 0)
 	if entries_err != nil {
 		return entries_err
 	}
-	
+
 	// Copy each entry
 	for entry in entries {
 		src_path := filepath.join({src, entry.name})
 		dst_path := filepath.join({dst, entry.name})
-		
+
 		if is_directory(entry.mode) {
 			// Recursively copy subdirectory
 			copy_err := copy_directory(src_path, dst_path)
@@ -100,12 +100,12 @@ copy_directory :: proc(src: string, dst: string) -> os.Error {
 			if !ok {
 				return os.General_Error.Not_Exist
 			}
-			
+
 			file, file_err := os.open(dst_path, os.O_CREATE | os.O_WRONLY | os.O_TRUNC, 0o644)
 			if file_err != nil {
 				return file_err
 			}
-			
+
 			_, write_err := os.write(file, content)
 			os.close(file)
 			if write_err != nil {
@@ -113,7 +113,7 @@ copy_directory :: proc(src: string, dst: string) -> os.Error {
 			}
 		}
 	}
-	
+
 	return nil
 }
 
@@ -125,17 +125,17 @@ remove_directory_recursive :: proc(path: string) -> os.Error {
 		return fd_err
 	}
 	defer os.close(fd)
-	
+
 	// Read entries
 	entries, entries_err := os.read_dir(fd, 0)
 	if entries_err != nil {
 		return entries_err
 	}
-	
+
 	// Remove each entry
 	for entry in entries {
 		entry_path := filepath.join({path, entry.name})
-		
+
 		if is_directory(entry.mode) {
 			// Recursively remove subdirectory
 			remove_err := remove_directory_recursive(entry_path)
@@ -150,7 +150,18 @@ remove_directory_recursive :: proc(path: string) -> os.Error {
 			}
 		}
 	}
-	
+
 	// Remove the now-empty directory using os.remove (works for empty dirs on Unix)
 	return os.remove(path)
+}
+
+// Build the complete command file content with frontmatter and embedded prompt
+build_command_content :: proc(cmd: Command_File) -> string {
+	// Build frontmatter and combine with embedded prompt
+	return fmt.tprintf(
+		"---\ntitle: %s\ndescription: %s\n---\n\n%s",
+		cmd.title,
+		cmd.description,
+		cmd.prompt,
+	)
 }

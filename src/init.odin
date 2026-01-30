@@ -113,20 +113,17 @@ prompt_agent_selection :: proc() -> ^Agent_Info {
 check_existing_command_files :: proc(agent: ^Agent_Info) -> []string {
 	existing: [dynamic]string
 
-	commands := []string{"create", "impl", "archive"}
-	for cmd in commands {
-		file_name := fmt.tprintf("%s/%s-%s.md", agent.commands_dir, agent.file_prefix, cmd)
-		if os.exists(file_name) {
-			append(&existing, file_name)
+	for cmd in agent.commands {
+		file_path := fmt.tprintf("%s%s%s", agent.commands_dir, agent.subdirectory, cmd.filename)
+		if os.exists(file_path) {
+			append(&existing, file_path)
 		}
 	}
 
 	return existing[:]
 }
 
-// Create agent command directory and files
 create_agent_commands :: proc(agent: ^Agent_Info) {
-	// Create commands directory
 	dir_err := os.make_directory(agent.commands_dir)
 	if dir_err != nil {
 		if dir_err != os.Platform_Error.EEXIST {
@@ -135,18 +132,23 @@ create_agent_commands :: proc(agent: ^Agent_Info) {
 		}
 	}
 
-	// Create command files based on agent type
-	commands := []struct {
-		name:    string,
-		content: string,
-	} {
-		{"create", get_command_template(agent.name, "create")},
-		{"impl", get_command_template(agent.name, "impl")},
-		{"archive", get_command_template(agent.name, "archive")},
+	if len(agent.subdirectory) > 0 {
+		subdir_path := fmt.tprintf("%s%s", agent.commands_dir, agent.subdirectory)
+		subdir_err := os.make_directory(subdir_path)
+		if subdir_err != nil {
+			if subdir_err != os.Platform_Error.EEXIST {
+				fmt.eprintfln("error creating %s: %s", subdir_path, subdir_err)
+				return
+			}
+		}
 	}
 
-	for cmd in commands {
-		file_path := fmt.tprintf("%s/%s-%s.md", agent.commands_dir, agent.file_prefix, cmd.name)
+	// Create command files
+	for cmd in agent.commands {
+		file_path := fmt.tprintf("%s%s%s", agent.commands_dir, agent.subdirectory, cmd.filename)
+
+		// Build command content with frontmatter and embedded prompt
+		content := build_command_content(cmd)
 
 		file, file_err := os.open(file_path, os.O_CREATE | os.O_WRONLY | os.O_TRUNC, 0o644)
 		if file_err != nil {
@@ -155,7 +157,7 @@ create_agent_commands :: proc(agent: ^Agent_Info) {
 		}
 		defer os.close(file)
 
-		_, write_err := os.write_string(file, cmd.content)
+		_, write_err := os.write_string(file, content)
 		if write_err != nil {
 			fmt.eprintfln("error writing to %s: %s", file_path, write_err)
 			continue
@@ -165,39 +167,4 @@ create_agent_commands :: proc(agent: ^Agent_Info) {
 	}
 
 	fmt.println("\nAgent command files created successfully!")
-}
-
-// Get command template based on agent and command type
-get_command_template :: proc(agent_name: string, command: string) -> string {
-	switch agent_name {
-	case "opencode":
-		switch command {
-		case "create":
-			return OC_CREATE_COMMAND
-		case "impl":
-			return OC_IMPL_COMMAND
-		case "archive":
-			return OC_ARCHIVE_COMMAND
-		}
-	case "claude":
-		switch command {
-		case "create":
-			return CLAUDE_CREATE_COMMAND
-		case "impl":
-			return CLAUDE_IMPL_COMMAND
-		case "archive":
-			return CLAUDE_ARCHIVE_COMMAND
-		}
-	case "cursor":
-		switch command {
-		case "create":
-			return CURSOR_CREATE_COMMAND
-		case "impl":
-			return CURSOR_IMPL_COMMAND
-		case "archive":
-			return CURSOR_ARCHIVE_COMMAND
-		}
-	}
-
-	return ""
 }

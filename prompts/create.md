@@ -1,8 +1,3 @@
----
-title: oc-create
-description: Create a new spec using openclose cli
----
-
 <user-request>
 $ARGUMENTS
 </user-request>
@@ -15,8 +10,8 @@ Create a new spec for the current project following these steps:
 
 - **If the user provided a spec name**: Use it as-is (ensure it's in kebab-case)
 - **If the user provided a feature description**: **You must** infer a spec name from the description and convert it to **kebab-case** (lowercase with dashes)
-  - Example: "User authentication process" → `user-authentication-process`
-  - Example: "Add payment system" → `add-payment-system`
+  - Example: "User authentication process" -> `user-authentication-process`
+  - Example: "Add payment system" -> `add-payment-system`
 - **If you cannot infer a meaningful spec name from the description**: **You must** use the **question** tool to ask the user:
   > What change do you want to work on? Please provide either the spec name in kebab-case or a clear description of the feature.
 
@@ -24,9 +19,7 @@ Create a new spec for the current project following these steps:
 
 **You must** create the spec using the following command:
 
-```bash
-openclose create <spec-name>
-```
+    openclose create <spec-name>
 
 **Important**: Replace `<spec-name>` with the actual spec name you determined in Step 1.
 
@@ -56,9 +49,7 @@ The spec files are located at `.openclose/specs/<spec-name>/`:
 
 Once all files are updated, **you must** validate the spec:
 
-```bash
-openclose validate <spec-name>
-```
+    openclose validate <spec-name>
 
 **You must** follow this validation loop until the spec passes:
 
