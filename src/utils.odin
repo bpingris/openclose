@@ -41,11 +41,6 @@ slugify :: proc(name: string) -> string {
 	return s
 }
 
-// File system utilities
-is_directory :: proc(mode: os.File_Mode) -> bool {
-	return (transmute(u32)mode & os.S_IFDIR) == os.S_IFDIR
-}
-
 make_directory_recursive :: proc(path: string) -> os.Error {
 	if os.exists(path) {
 		return nil
@@ -88,7 +83,7 @@ copy_directory :: proc(src: string, dst: string) -> os.Error {
 		src_path := filepath.join({src, entry.name})
 		dst_path := filepath.join({dst, entry.name})
 
-		if is_directory(entry.mode) {
+		if entry.is_dir {
 			// Recursively copy subdirectory
 			copy_err := copy_directory(src_path, dst_path)
 			if copy_err != nil {
@@ -136,7 +131,7 @@ remove_directory_recursive :: proc(path: string) -> os.Error {
 	for entry in entries {
 		entry_path := filepath.join({path, entry.name})
 
-		if is_directory(entry.mode) {
+		if entry.is_dir {
 			// Recursively remove subdirectory
 			remove_err := remove_directory_recursive(entry_path)
 			if remove_err != nil {

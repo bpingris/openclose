@@ -38,37 +38,6 @@ jobs:
           path: build/openclose
           retention-days: 30
 
-  build-macos-x86_64:
-    runs-on: macos-13
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Cache Odin compiler
-        uses: actions/cache@v5
-        with:
-          path: ~/odin
-          key: ${{ runner.os }}-odin-${{ runner.arch }}-${{ hashFiles('**/*.odin') }}
-          restore-keys: |
-            ${{ runner.os }}-odin-${{ runner.arch }}-
-
-      - name: Setup Odin
-        uses: laytan/setup-odin@v2
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build openclose
-        run: |
-          mkdir -p build
-          odin build src -out:build/openclose -o:speed -vet -strict-style
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v6
-        with:
-          name: openclose-macos-x86_64
-          path: build/openclose
-          retention-days: 30
-
   build-linux-x86_64:
     runs-on: ubuntu-latest
     steps:
