@@ -13,6 +13,20 @@ openclose helps development teams manage their project specifications through a 
 
 ## Installation
 
+### Using Homebrew (Recommended)
+
+The easiest way to install openclose on macOS and Linux. Homebrew builds from source automatically:
+
+```bash
+# Install from the latest release
+brew install openclose
+
+# Or install the latest development version from main branch
+brew install openclose --HEAD
+```
+
+**Note:** Homebrew builds from source locally, so you won't encounter macOS Gatekeeper warnings that appear with downloaded binaries.
+
 ### From Source
 
 Requires the [Odin programming language](https://odin-lang.org/):
@@ -25,6 +39,16 @@ odin build src -out:build/openclose -o:speed -vet -strict-style
 ### Pre-built Binaries
 
 Download pre-built binaries from the [GitHub Releases](../../releases) page.
+
+**Note:** macOS users may see a Gatekeeper warning when running pre-built binaries. To bypass:
+- Right-click the binary and select "Open" instead of double-clicking
+- Or run: `xattr -d com.apple.quarantine build/openclose`
+
+**Which installation method should I use?**
+
+- **Homebrew**: Recommended for most users. Automatically handles dependencies, updates, and avoids Gatekeeper issues.
+- **From Source**: Use if you want to modify the code or need a specific version not yet in Homebrew.
+- **Pre-built Binaries**: Use if you need a quick download and don't have Homebrew installed (requires bypassing Gatekeeper on macOS).
 
 ## Quick Start
 

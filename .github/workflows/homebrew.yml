@@ -1,0 +1,75 @@
+name: Homebrew Formula Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-macos-arm64:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Install Odin
+        run: brew install odin
+
+      - name: Test formula build
+        run: |
+          cd homebrew
+          brew install --build-from-source ./openclose.rb
+
+      - name: Test formula test block
+        run: brew test openclose
+
+      - name: Verify installation
+        run: |
+          which openclose
+          openclose --help
+
+  test-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Install Odin
+        run: brew install odin
+
+      - name: Test formula build
+        run: |
+          cd homebrew
+          brew install --build-from-source ./openclose.rb
+
+      - name: Test formula test block
+        run: brew test openclose
+
+      - name: Verify installation
+        run: |
+          which openclose
+          openclose --help
+
+  test-homebrew-audit:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Run brew audit
+        run: |
+          cd homebrew
+          brew audit --strict openclose.rb
