@@ -1,0 +1,48 @@
+name: Update Homebrew Tap
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  update-tap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout openclose repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract tag and commit hash
+        id: version
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          COMMIT=$(git rev-list -n 1 $TAG)
+          echo "commit=$COMMIT" >> $GITHUB_OUTPUT
+          echo "Updating to version $TAG (commit: $COMMIT)"
+
+      - name: Checkout homebrew-tap repository
+        uses: actions/checkout@v4
+        with:
+          repository: bpingris/homebrew-tap
+          token: ${{ secrets.TAP_GITHUB_TOKEN }}
+          path: homebrew-tap
+
+      - name: Update formula
+        run: |
+          cd homebrew-tap
+          sed -i "s/tag: \".*\"/tag: \"${{ steps.version.outputs.tag }}\"/" Formula/openclose.rb
+          sed -i "s/revision: \".*\"/revision: \"${{ steps.version.outputs.commit }}\"/" Formula/openclose.rb
+          echo "Updated formula:"
+          grep -E "tag:|revision:" Formula/openclose.rb
+
+      - name: Commit and push changes
+        run: |
+          cd homebrew-tap
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add Formula/openclose.rb
+          git commit -m "Update openclose to ${{ steps.version.outputs.tag }}"
+          git push

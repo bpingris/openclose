@@ -108,6 +108,33 @@ This project uses GitHub Actions for automated multi-platform builds:
 
 See `.github/workflows/build.yml` for the build configuration.
 
+## Release Process (For Maintainers)
+
+To release a new version:
+
+1. **Create and push a tag:**
+   ```bash
+   git tag -a v0.2.0 -m "Release v0.2.0"
+   git push origin v0.2.0
+   ```
+
+2. **Automated workflow triggers:**
+   - The `update-tap.yml` workflow automatically updates the Homebrew formula in the [homebrew-tap](https://github.com/bpingris/homebrew-tap) repository
+   - The `build.yml` workflow creates pre-built binaries for all platforms
+
+3. **Done!** Users can now:
+   - Upgrade via Homebrew: `brew upgrade openclose`
+   - Download pre-built binaries from the [Releases](../../releases) page
+
+### Setting up the automated tap update (one-time setup)
+
+The automated Homebrew tap update requires a Personal Access Token (PAT):
+
+1. Go to GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)
+2. Generate a new token with `repo` scope
+3. In the openclose repository, go to Settings → Secrets and variables → Actions
+4. Add a new secret named `TAP_GITHUB_TOKEN` with your PAT value
+
 ## License
 
 MIT
