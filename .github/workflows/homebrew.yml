@@ -1,4 +1,4 @@
-name: Homebrew Formula Test
+name: Homebrew Tap Test
 
 on:
   push:
@@ -10,66 +10,61 @@ jobs:
   test-macos-arm64:
     runs-on: macos-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
       - name: Set up Homebrew
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@master
 
-      - name: Install Odin
-        run: brew install odin
+      - name: Add custom tap
+        run: brew tap bpingris/tap
 
-      - name: Test formula build
-        run: |
-          cd homebrew
-          brew install --build-from-source ./openclose.rb
+      - name: Install openclose from tap
+        run: brew install openclose
 
-      - name: Test formula test block
+      - name: Run brew test
         run: brew test openclose
 
       - name: Verify installation
         run: |
           which openclose
           openclose --help
+          openclose --version || true
 
   test-linux:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
       - name: Set up Homebrew
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@master
 
-      - name: Install Odin
-        run: brew install odin
+      - name: Add custom tap
+        run: brew tap bpingris/tap
 
-      - name: Test formula build
-        run: |
-          cd homebrew
-          brew install --build-from-source ./openclose.rb
+      - name: Install openclose from tap
+        run: brew install openclose
 
-      - name: Test formula test block
+      - name: Run brew test
         run: brew test openclose
 
       - name: Verify installation
         run: |
           which openclose
           openclose --help
+          openclose --version || true
 
-  test-homebrew-audit:
+  test-head-install:
     runs-on: macos-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
       - name: Set up Homebrew
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@master
 
-      - name: Run brew audit
+      - name: Add custom tap
+        run: brew tap bpingris/tap
+
+      - name: Install openclose --HEAD
+        run: brew install openclose --HEAD
+
+      - name: Verify HEAD installation
         run: |
-          cd homebrew
-          brew audit --strict openclose.rb
+          which openclose
+          openclose --help
