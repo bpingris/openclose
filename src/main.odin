@@ -13,8 +13,7 @@ print_help :: proc() {
 		"  create <name> --epic <epic>   Create a new spec attached to an epic (creates epic if needed)",
 	)
 	fmt.println("  epic <name>                   Create a new epic")
-	fmt.println("  view                          View all specs and epics")
-	fmt.println("  summary                       Show progress summary of all specs and epics")
+	fmt.println("  summary                       Show all specs with progress")
 	fmt.println("  validate <name>               Validate a spec's file formats")
 	fmt.println(
 		"  archive <path>                Archive specs/epics (e.g., specs/name or epics/epic/name)",
@@ -38,8 +37,6 @@ main :: proc() {
 		create_cmd()
 	case "epic":
 		epic_cmd()
-	case "view":
-		view_cmd()
 	case "summary":
 		summary_cmd()
 	case "validate":

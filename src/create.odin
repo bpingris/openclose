@@ -38,12 +38,12 @@ create_spec :: proc(name: string, epic: string = "") {
 		fmt.eprintfln("error creating %s: %s", prd_path, file_err)
 		return
 	}
+	defer os.close(file)
 
 	content, _ := strings.replace(SPEC_TEMPLATE, "{name}", name, 1)
 	content, _ = strings.replace(content, "{date}", current_date(), 1)
 
 	_, write_err := os.write_string(file, content)
-	os.close(file)
 	if write_err != nil {
 		fmt.eprintfln("error writing to %s: %s", prd_path, write_err)
 		return
@@ -56,10 +56,10 @@ create_spec :: proc(name: string, epic: string = "") {
 		fmt.eprintfln("error creating %s: %s", tasks_path, tasks_err)
 		return
 	}
+	defer os.close(tasks_file)
 
 	tasks_content, _ := strings.replace(TASKS_TEMPLATE, "{name}", name, 1)
 	_, tasks_write_err := os.write_string(tasks_file, tasks_content)
-	os.close(tasks_file)
 	if tasks_write_err != nil {
 		fmt.eprintfln("error writing to %s: %s", tasks_path, tasks_write_err)
 		return
@@ -76,10 +76,10 @@ create_spec :: proc(name: string, epic: string = "") {
 		fmt.eprintfln("error creating %s: %s", scenarios_path, scenarios_err)
 		return
 	}
+	defer os.close(scenarios_file)
 
 	scenarios_content, _ := strings.replace(SCENARIOS_TEMPLATE, "{name}", name, 1)
 	_, scenarios_write_err := os.write_string(scenarios_file, scenarios_content)
-	os.close(scenarios_file)
 	if scenarios_write_err != nil {
 		fmt.eprintfln("error writing to %s: %s", scenarios_path, scenarios_write_err)
 		return

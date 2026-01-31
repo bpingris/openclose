@@ -26,15 +26,16 @@ summary_cmd :: proc() {
 	epics_dir := get_epics_dir()
 	if os.exists(epics_dir) {
 		fd, err := os.open(epics_dir, os.O_RDONLY)
-		if err == nil {
-			defer os.close(fd)
-			files, _ := os.read_dir(fd, 0)
-			for f in files {
-				if f.is_dir {
-					epic_path := filepath.join({epics_dir, f.name})
-					epic_info := collect_epic_info(epic_path, f.name)
-					append(&all_epics, epic_info)
-				}
+		if err != nil {
+			return
+		}
+		defer os.close(fd)
+		files, _ := os.read_dir(fd, 0)
+		for f in files {
+			if f.is_dir {
+				epic_path := filepath.join({epics_dir, f.name})
+				epic_info := collect_epic_info(epic_path, f.name)
+				append(&all_epics, epic_info)
 			}
 		}
 	}

@@ -59,10 +59,7 @@ Download pre-built binaries from the [GitHub Releases](../../releases) page.
 # Create a new spec
 ./openclose create my-feature
 
-# View all specs
-./openclose view
-
-# Check implementation progress
+# View all specs and their progress
 ./openclose summary
 ```
 
@@ -74,8 +71,7 @@ Download pre-built binaries from the [GitHub Releases](../../releases) page.
 | `create <name>` | Create a new spec |
 | `create <name> --epic <epic>` | Create a spec attached to an epic |
 | `epic <name>` | Create a new epic |
-| `view` | View all specs and epics |
-| `summary` | Show progress summary |
+| `summary` | Show all specs with progress |
 | `validate <name>` | Validate a spec's file formats |
 | `archive <path>` | Archive a spec or epic |
 | `help` | Show help message |

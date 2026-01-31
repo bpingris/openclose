@@ -100,9 +100,9 @@ copy_directory :: proc(src: string, dst: string) -> os.Error {
 			if file_err != nil {
 				return file_err
 			}
+			defer os.close(file)
 
 			_, write_err := os.write(file, content)
-			os.close(file)
 			if write_err != nil {
 				return write_err
 			}
