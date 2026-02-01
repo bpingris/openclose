@@ -18,11 +18,15 @@ openclose helps development teams manage their project specifications through a 
 The easiest way to install openclose on macOS and Linux. Homebrew builds from source automatically:
 
 ```bash
-# Install from the latest release
+# Install from the latest release (one-liner)
+brew install bpingris/tap/openclose
+
+# Or install from the tap (two steps)
+brew tap bpingris/tap
 brew install openclose
 
 # Or install the latest development version from main branch
-brew install openclose --HEAD
+brew install bpingris/tap/openclose --HEAD
 ```
 
 **Note:** Homebrew builds from source locally, so you won't encounter macOS Gatekeeper warnings that appear with downloaded binaries.
@@ -119,7 +123,7 @@ To release a new version:
    - The `build.yml` workflow creates pre-built binaries for all platforms
 
 3. **Done!** Users can now:
-   - Upgrade via Homebrew: `brew upgrade openclose`
+   - Upgrade via Homebrew: `brew update && brew upgrade openclose`
    - Download pre-built binaries from the [Releases](../../releases) page
 
 ### Setting up the automated tap update (one-time setup)
