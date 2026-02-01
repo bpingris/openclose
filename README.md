@@ -119,6 +119,7 @@ To release a new version:
    ```
 
 2. **Automated workflow triggers:**
+   - The `release.yml` workflow creates a GitHub Release with auto-generated release notes
    - The `update-tap.yml` workflow automatically updates the Homebrew formula in the [homebrew-tap](https://github.com/bpingris/homebrew-tap) repository
    - The `build.yml` workflow creates pre-built binaries for all platforms
 

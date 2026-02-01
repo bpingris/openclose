@@ -43,12 +43,17 @@ git push origin v0.2.0
 
 ### 3. Automated Workflows Trigger
 
-Pushing the tag automatically triggers two workflows:
+Pushing the tag automatically triggers three workflows:
+
+#### Release Workflow (`.github/workflows/release.yml`)
+- Creates a GitHub Release with auto-generated release notes
+- Categorizes changes (features, fixes, etc.)
+- Lists contributors
+- No manual release notes writing needed!
 
 #### Build Workflow (`.github/workflows/build.yml`)
 - Builds binaries for macOS ARM64, macOS x86_64, and Linux x86_64
 - Uploads binaries as artifacts
-- Creates a GitHub Release with all binaries attached
 
 #### Update Tap Workflow (`.github/workflows/update-tap.yml`)
 - Extracts the tag name and commit hash
