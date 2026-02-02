@@ -1,3 +1,7 @@
+<user-request>
+$ARGUMENTS
+</user-request>
+
 Archive the spec given by the user following these steps:
 
 Step 1: Find the Spec

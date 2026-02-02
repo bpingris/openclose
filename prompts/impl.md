@@ -1,3 +1,6 @@
+<user-request>
+$ARGUMENTS
+</user-request>
 Implement the spec given by the user following these steps:
 
 Step 1: Find and Validate the Spec

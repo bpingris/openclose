@@ -1,3 +1,6 @@
+<user-request>
+$ARGUMENTS
+</user-request>
 Create a new spec for the current project following these steps:
 
 Step 1: Determine the Spec Name
