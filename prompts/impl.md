@@ -75,7 +75,7 @@ Once all specified tasks are implemented and checked off:
 ---
 
 **Summary of Requirements:**
-- **Must** use the **question** tool (not AskUserQuestion) for user decisions
+- **Must** use the **question** tool for user decisions
 - **Must** validate spec before implementation
 - **Must** alert user of validation errors and ask if they want to review or let you fix it
 - **Must not** start implementation until spec is valid

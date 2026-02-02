@@ -77,7 +77,7 @@ After validation passes, **you must** ask the user:
 
 **Summary of Requirements:**
 - **Must** get or infer spec name in kebab-case
-- **Must** use AskUserQuestion if spec name cannot be determined
+- **Must** use **question** tool if spec name cannot be determined
 - **Must** create spec with `openclose create <spec-name>`
 - **Must not** start implementing immediately
 - **Must** update all spec files with meaningful content

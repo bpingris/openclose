@@ -15,10 +15,11 @@ print_help :: proc() {
 	fmt.println("  epic <name>                   Create a new epic")
 	fmt.println("  summary                       Show all specs with progress")
 	fmt.println("  validate <name>               Validate a spec's file formats")
-	fmt.println(
-		"  archive <path>                Archive specs/epics (e.g., specs/name or epics/epic/name)",
-	)
-	fmt.println("  help                          Show this help message")
+  fmt.println(
+    "  archive <path>                Archive specs/epics (e.g., specs/name or epics/epic/name)",
+  )
+  fmt.println("  version                       Show the current version")
+  fmt.println("  help                          Show this help message")
 }
 
 main :: proc() {
@@ -43,6 +44,8 @@ main :: proc() {
 		validate_cmd()
 	case "archive":
 		archive_cmd()
+	case "version":
+		version_cmd()
 	case "help", "--help", "-h":
 		print_help()
 	case:
