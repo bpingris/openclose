@@ -23,7 +23,10 @@ print_help :: proc() {
 	fmt.println("  help                          Show this help message")
 }
 
+
 main :: proc() {
+
+
 	if len(os.args) < 2 {
 		print_help()
 		return

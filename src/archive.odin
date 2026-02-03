@@ -85,8 +85,12 @@ archive_cmd :: proc() {
 		fmt.println(
 			"  openclose archive <name>                   - Auto-detect and archive (searches specs/ and epics/)",
 		)
-		fmt.println("  openclose archive specs/<spec-name>        - Archive standalone spec (PRD.md only)")
-		fmt.println("  openclose archive epics/<epic>/<spec>      - Archive epic spec (PRD.md only)")
+		fmt.println(
+			"  openclose archive specs/<spec-name>        - Archive standalone spec (PRD.md only)",
+		)
+		fmt.println(
+			"  openclose archive epics/<epic>/<spec>      - Archive epic spec (PRD.md only)",
+		)
 		fmt.println("  openclose archive epics/<epic>             - Archive entire epic")
 		fmt.println("")
 		fmt.println("Archived specs only preserve PRD.md, epics preserve full structure")

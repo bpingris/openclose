@@ -48,7 +48,7 @@ slugify :: proc(name: string) -> string {
 		}
 	}
 
-	return strings.to_string(sb)
+	return strings.clone(strings.to_string(sb))
 }
 
 make_directory_recursive :: proc(path: string) -> os.Error {
