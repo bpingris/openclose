@@ -148,3 +148,324 @@ test_contains_case_insensitive_overlapping :: proc(t: ^testing.T) {
 	pattern := "AAA"
 	testing.expect(t, contains_case_insensitive(text, pattern), "Expected overlapping pattern to be found")
 }
+
+@(test)
+test_validate_prd_content_valid :: proc(t: ^testing.T) {
+	content := `# Test Spec
+
+## Problem Statement
+
+We need to solve this problem.
+
+## Requirements
+
+1. The system MUST handle inputs
+2. The system SHOULD validate data
+
+## Technical Notes
+
+Implementation details here.
+`
+
+	errors := validate_prd_content(content)
+	defer free_all(context.temp_allocator)
+
+	testing.expect_value(t, len(errors), 0)
+}
+
+@(test)
+test_validate_prd_content_missing_problem_statement :: proc(t: ^testing.T) {
+	content := `# Test Spec
+
+## Requirements
+
+1. The system MUST handle inputs
+
+## Technical Notes
+
+Implementation details here.
+`
+
+	errors := validate_prd_content(content)
+	defer free_all(context.temp_allocator)
+
+	testing.expect(t, len(errors) > 0)
+}
+
+@(test)
+test_validate_prd_content_missing_requirements :: proc(t: ^testing.T) {
+	content := `# Test Spec
+
+## Problem Statement
+
+We need to solve this problem.
+
+## Technical Notes
+
+Implementation details here.
+`
+
+	errors := validate_prd_content(content)
+	defer free_all(context.temp_allocator)
+
+	testing.expect(t, len(errors) > 0)
+}
+
+@(test)
+test_validate_prd_content_missing_technical_notes :: proc(t: ^testing.T) {
+	content := `# Test Spec
+
+## Problem Statement
+
+We need to solve this problem.
+
+## Requirements
+
+1. The system MUST handle inputs
+`
+
+	errors := validate_prd_content(content)
+	defer free_all(context.temp_allocator)
+
+	testing.expect(t, len(errors) > 0)
+}
+
+@(test)
+test_validate_prd_content_missing_title :: proc(t: ^testing.T) {
+	content := `Test Spec without title
+
+## Problem Statement
+
+We need to solve this problem.
+
+## Requirements
+
+1. The system MUST handle inputs
+
+## Technical Notes
+
+Implementation details here.
+`
+
+	errors := validate_prd_content(content)
+	defer free_all(context.temp_allocator)
+
+	testing.expect(t, len(errors) > 0)
+}
+
+@(test)
+test_validate_prd_content_empty :: proc(t: ^testing.T) {
+	content := ""
+
+	errors := validate_prd_content(content)
+	defer free_all(context.temp_allocator)
+
+	testing.expect(t, len(errors) > 0)
+}
+
+@(test)
+test_validate_prd_content_missing_rfc2119 :: proc(t: ^testing.T) {
+	content := `# Test Spec
+
+## Problem Statement
+
+We need to solve this problem.
+
+## Requirements
+
+1. The system handles inputs
+2. The system validates data
+
+## Technical Notes
+
+Implementation details here.
+`
+
+	errors := validate_prd_content(content)
+	defer free_all(context.temp_allocator)
+
+	testing.expect(t, len(errors) > 0)
+}
+
+@(test)
+test_validate_tasks_content_valid :: proc(t: ^testing.T) {
+	content := `# Tasks for Test
+
+## Phase 1: Foundation
+
+- [ ] The system MUST implement this
+- [x] The system SHOULD do that
+`
+
+	errors := validate_tasks_content(content)
+	defer free_all(context.temp_allocator)
+
+	testing.expect_value(t, len(errors), 0)
+}
+
+@(test)
+test_validate_tasks_content_no_phases :: proc(t: ^testing.T) {
+	content := `# Tasks for Test
+
+- [ ] Task without phase
+- [ ] Another task
+`
+
+	errors := validate_tasks_content(content)
+	defer free_all(context.temp_allocator)
+
+	testing.expect(t, len(errors) > 0)
+}
+
+@(test)
+test_validate_tasks_content_no_checkboxes :: proc(t: ^testing.T) {
+	content := `# Tasks for Test
+
+## Phase 1
+
+This is just a description.
+
+## Phase 2
+
+More description text.
+`
+
+	errors := validate_tasks_content(content)
+	defer free_all(context.temp_allocator)
+
+	testing.expect(t, len(errors) > 0)
+}
+
+@(test)
+test_validate_tasks_content_missing_rfc2119 :: proc(t: ^testing.T) {
+	content := `# Tasks for Test
+
+## Phase 1
+
+- [ ] Implement the feature
+- [ ] Test the system
+`
+
+	errors := validate_tasks_content(content)
+	defer free_all(context.temp_allocator)
+
+	testing.expect(t, len(errors) > 0)
+}
+
+@(test)
+test_validate_tasks_content_empty :: proc(t: ^testing.T) {
+	content := ""
+
+	errors := validate_tasks_content(content)
+	defer free_all(context.temp_allocator)
+
+	testing.expect(t, len(errors) >= 2)
+}
+
+@(test)
+test_validate_scenarios_content_valid :: proc(t: ^testing.T) {
+	content := `# Scenarios for Test
+
+### Scenario 1: Valid case
+**Given** a valid system
+**When** the user MUST act
+**Then** the system SHOULD respond
+`
+
+	errors := validate_scenarios_content(content)
+	defer free_all(context.temp_allocator)
+
+	testing.expect_value(t, len(errors), 0)
+}
+
+@(test)
+test_validate_scenarios_content_no_given :: proc(t: ^testing.T) {
+	content := `# Scenarios for Test
+
+### Scenario 1: Invalid
+**When** action occurs
+**Then** result happens
+`
+
+	errors := validate_scenarios_content(content)
+	defer free_all(context.temp_allocator)
+
+	testing.expect(t, len(errors) > 0)
+}
+
+@(test)
+test_validate_scenarios_content_no_when :: proc(t: ^testing.T) {
+	content := `# Scenarios for Test
+
+### Scenario 1: Invalid
+**Given** initial state
+**Then** result happens
+`
+
+	errors := validate_scenarios_content(content)
+	defer free_all(context.temp_allocator)
+
+	testing.expect(t, len(errors) > 0)
+}
+
+@(test)
+test_validate_scenarios_content_no_then :: proc(t: ^testing.T) {
+	content := `# Scenarios for Test
+
+### Scenario 1: Invalid
+**Given** initial state
+**When** action occurs
+`
+
+	errors := validate_scenarios_content(content)
+	defer free_all(context.temp_allocator)
+
+	testing.expect(t, len(errors) > 0)
+}
+
+@(test)
+test_validate_scenarios_content_missing_rfc2119 :: proc(t: ^testing.T) {
+	content := `# Scenarios for Test
+
+### Scenario 1: No keywords
+**Given** a system
+**When** something happens
+**Then** something else occurs
+`
+
+	errors := validate_scenarios_content(content)
+	defer free_all(context.temp_allocator)
+
+	testing.expect(t, len(errors) > 0)
+}
+
+@(test)
+test_validate_scenarios_content_empty :: proc(t: ^testing.T) {
+	content := ""
+
+	errors := validate_scenarios_content(content)
+	defer free_all(context.temp_allocator)
+
+	testing.expect(t, len(errors) >= 3)
+}
+
+@(test)
+test_validate_scenarios_content_multiple_scenarios :: proc(t: ^testing.T) {
+	content := `# Scenarios for Test
+
+### Scenario 1: First
+**Given** a system that MUST work
+**When** the user acts
+**Then** the system SHOULD respond
+
+### Scenario 2: Second
+**Given** another system
+**When** something else MUST happen
+**Then** a different result SHOULD occur
+`
+
+	errors := validate_scenarios_content(content)
+	defer free_all(context.temp_allocator)
+
+	testing.expect_value(t, len(errors), 0)
+}

@@ -4,21 +4,17 @@ import "core:os"
 import "core:path/filepath"
 import "core:strings"
 
-// Parse tasks.md file to extract completion stats
-parse_tasks_for_completion :: proc(
-	tasks_path: string,
+// Parse tasks content string to extract completion stats
+// This function can be unit tested without file I/O
+parse_tasks_content :: proc(
+	content: string,
 ) -> (
 	total: int,
 	completed: int,
 	phases: []Phase_Info,
 ) {
-	content, ok := os.read_entire_file(tasks_path)
-	if !ok {
-		return 0, 0, nil
-	}
-
-	phases_list := make([dynamic]Phase_Info)
-	lines := strings.split_lines(string(content))
+	phases_list := make([dynamic]Phase_Info, context.temp_allocator)
+	lines := strings.split_lines(content, context.temp_allocator)
 	current_phase: Phase_Info
 	in_phase := false
 
@@ -65,10 +61,30 @@ parse_tasks_for_completion :: proc(
 	return total, completed, phases_list[:]
 }
 
+// Parse tasks.md file to extract completion stats
+// Reads file and delegates to parse_tasks_content for parsing
+parse_tasks_for_completion :: proc(
+	tasks_path: string,
+) -> (
+	total: int,
+	completed: int,
+	phases: []Phase_Info,
+) {
+	content, ok := os.read_entire_file(tasks_path)
+	if !ok {
+		return 0, 0, nil
+	}
+	defer delete(content)
+
+	total, completed, phases = parse_tasks_content(string(content))
+	return total, completed, phases
+}
+
 // Collect spec information
 collect_spec_info :: proc(spec_path: string, spec_name: string) -> Spec_Info {
-	tasks_path := filepath.join({spec_path, "tasks.md"})
-	prd_path := filepath.join({spec_path, "PRD.md"})
+	tasks_path := filepath.join({spec_path, "tasks.md"}, context.temp_allocator)
+	prd_path := filepath.join({spec_path, "PRD.md"}, context.temp_allocator)
+	defer free_all(context.temp_allocator)
 
 	total, completed, phases := 0, 0, make([]Phase_Info, 0)
 
@@ -92,8 +108,8 @@ collect_spec_info :: proc(spec_path: string, spec_name: string) -> Spec_Info {
 
 // Recursively collect specs from a directory
 collect_specs_recursive :: proc(dir: string, specs: ^[dynamic]Spec_Info) {
-	fd, err := os.open(dir, os.O_RDONLY)
-	if err != nil {
+	fd, open_err := os.open(dir, os.O_RDONLY)
+	if open_err != nil {
 		return
 	}
 	defer os.close(fd)

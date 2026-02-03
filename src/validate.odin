@@ -11,6 +11,7 @@ find_spec_path :: proc(spec_name: string) -> (string, bool) {
 
 	// Check standalone specs
 	standalone_path := filepath.join({get_specs_dir(), spec_slug})
+	defer delete(standalone_path)
 	if os.exists(standalone_path) {
 		return standalone_path, true
 	}
@@ -37,7 +38,18 @@ find_spec_path :: proc(spec_name: string) -> (string, bool) {
 }
 
 // RFC 2119 keywords for requirement validation
-RFC2119_KEYWORDS :: []string{"MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", "OPTIONAL"}
+RFC2119_KEYWORDS :: []string {
+	"MUST",
+	"MUST NOT",
+	"REQUIRED",
+	"SHALL",
+	"SHALL NOT",
+	"SHOULD",
+	"SHOULD NOT",
+	"RECOMMENDED",
+	"MAY",
+	"OPTIONAL",
+}
 
 // Case-insensitive string contains check (avoids allocation)
 contains_case_insensitive :: proc(text: string, pattern: string) -> bool {
@@ -47,21 +59,21 @@ contains_case_insensitive :: proc(text: string, pattern: string) -> bool {
 	if len(text) < len(pattern) {
 		return false
 	}
-	
+
 	pattern_upper := transmute([]u8)pattern
 	text_upper := transmute([]u8)text
-	
+
 	for i := 0; i <= len(text) - len(pattern); i += 1 {
 		found := true
 		for j := 0; j < len(pattern); j += 1 {
 			text_char := text_upper[i + j]
 			pattern_char := pattern_upper[j]
-			
+
 			// Convert to uppercase for comparison
 			if text_char >= 'a' && text_char <= 'z' {
 				text_char = text_char - 'a' + 'A'
 			}
-			
+
 			if text_char != pattern_char {
 				found = false
 				break
@@ -84,17 +96,10 @@ has_rfc2119_keywords :: proc(text: string) -> bool {
 	return false
 }
 
-// Validate PRD.md format
-validate_prd :: proc(prd_path: string) -> []Validation_Error {
-	errors := make([dynamic]Validation_Error)
-
-	content, ok := os.read_entire_file(prd_path)
-	if !ok {
-		append(&errors, Validation_Error{file = "PRD.md", message = "Could not read file"})
-		return errors[:]
-	}
-
-	text := string(content)
+// Validate PRD.md content string format
+// This function can be unit tested without file I/O
+validate_prd_content :: proc(text: string) -> []Validation_Error {
+	errors := make([dynamic]Validation_Error, context.temp_allocator)
 
 	// Check required sections
 	required_sections := []string{"## Problem Statement", "## Requirements", "## Technical Notes"}
@@ -111,7 +116,7 @@ validate_prd :: proc(prd_path: string) -> []Validation_Error {
 	}
 
 	// Check for title (first line should be # Something)
-	lines := strings.split_lines(text)
+	lines := strings.split_lines(text, context.temp_allocator)
 	if len(lines) > 0 {
 		first_line := strings.trim_space(lines[0])
 		if !strings.has_prefix(first_line, "# ") {
@@ -136,9 +141,9 @@ validate_prd :: proc(prd_path: string) -> []Validation_Error {
 			// Find the end of this section (next ## or end of file)
 			next_section := strings.index(req_section[1:], "## ")
 			if next_section != -1 {
-				req_section = req_section[:next_section+1]
+				req_section = req_section[:next_section + 1]
 			}
-			
+
 			if !has_rfc2119_keywords(req_section) {
 				append(
 					&errors,
@@ -154,18 +159,26 @@ validate_prd :: proc(prd_path: string) -> []Validation_Error {
 	return errors[:]
 }
 
-// Validate tasks.md format
-validate_tasks :: proc(tasks_path: string) -> []Validation_Error {
-	errors := make([dynamic]Validation_Error)
-
-	content, ok := os.read_entire_file(tasks_path)
+// Validate PRD.md format
+// Reads file and delegates to validate_prd_content for validation
+validate_prd :: proc(prd_path: string) -> []Validation_Error {
+	content, ok := os.read_entire_file(prd_path)
 	if !ok {
-		append(&errors, Validation_Error{file = "tasks.md", message = "Could not read file"})
+		errors := make([dynamic]Validation_Error)
+		append(&errors, Validation_Error{file = "PRD.md", message = "Could not read file"})
 		return errors[:]
 	}
+	defer delete(content)
 
-	text := string(content)
-	lines := strings.split_lines(text)
+	return validate_prd_content(string(content))
+}
+
+// Validate tasks.md content string format
+// This function can be unit tested without file I/O
+validate_tasks_content :: proc(text: string) -> []Validation_Error {
+	errors := make([dynamic]Validation_Error, context.temp_allocator)
+
+	lines := strings.split_lines(text, context.temp_allocator)
 
 	has_phases := false
 	has_checkboxes := false
@@ -186,16 +199,17 @@ validate_tasks :: proc(tasks_path: string) -> []Validation_Error {
 		   strings.has_prefix(trimmed, "- [X]") {
 			has_checkboxes = true
 			task_count += 1
-			
+
 			// Extract task description (after the checkbox)
 			task_desc := trimmed
 			if strings.has_prefix(trimmed, "- [ ]") {
 				task_desc = trimmed[5:]
-			} else if strings.has_prefix(trimmed, "- [x]") || strings.has_prefix(trimmed, "- [X]") {
+			} else if strings.has_prefix(trimmed, "- [x]") ||
+			   strings.has_prefix(trimmed, "- [X]") {
 				task_desc = trimmed[5:]
 			}
 			task_desc = strings.trim_space(task_desc)
-			
+
 			if has_rfc2119_keywords(task_desc) {
 				tasks_with_rfc2119 += 1
 			}
@@ -236,18 +250,26 @@ validate_tasks :: proc(tasks_path: string) -> []Validation_Error {
 	return errors[:]
 }
 
-// Validate scenarios.md format
-validate_scenarios :: proc(scenarios_path: string) -> []Validation_Error {
-	errors := make([dynamic]Validation_Error)
-
-	content, ok := os.read_entire_file(scenarios_path)
+// Validate tasks.md format
+// Reads file and delegates to validate_tasks_content for validation
+validate_tasks :: proc(tasks_path: string) -> []Validation_Error {
+	content, ok := os.read_entire_file(tasks_path)
 	if !ok {
-		append(&errors, Validation_Error{file = "scenarios.md", message = "Could not read file"})
+		errors := make([dynamic]Validation_Error)
+		append(&errors, Validation_Error{file = "tasks.md", message = "Could not read file"})
 		return errors[:]
 	}
+	defer delete(content)
 
-	text := string(content)
-	lines := strings.split_lines(text)
+	return validate_tasks_content(string(content))
+}
+
+// Validate scenarios.md content string format
+// This function can be unit tested without file I/O
+validate_scenarios_content :: proc(text: string) -> []Validation_Error {
+	errors := make([dynamic]Validation_Error, context.temp_allocator)
+
+	lines := strings.split_lines(text, context.temp_allocator)
 
 	has_given := false
 	has_when := false
@@ -259,7 +281,7 @@ validate_scenarios :: proc(scenarios_path: string) -> []Validation_Error {
 
 	for line in lines {
 		trimmed := strings.trim_space(line)
-		upper := strings.to_upper(trimmed)
+		upper := strings.to_upper(trimmed, context.temp_allocator)
 
 		// Check for scenario headers (### Scenario)
 		if strings.has_prefix(upper, "### SCENARIO") || strings.has_prefix(upper, "## SCENARIO") {
@@ -322,6 +344,20 @@ validate_scenarios :: proc(scenarios_path: string) -> []Validation_Error {
 	}
 
 	return errors[:]
+}
+
+// Validate scenarios.md format
+// Reads file and delegates to validate_scenarios_content for validation
+validate_scenarios :: proc(scenarios_path: string) -> []Validation_Error {
+	content, ok := os.read_entire_file(scenarios_path)
+	if !ok {
+		errors := make([dynamic]Validation_Error)
+		append(&errors, Validation_Error{file = "scenarios.md", message = "Could not read file"})
+		return errors[:]
+	}
+	defer delete(content)
+
+	return validate_scenarios_content(string(content))
 }
 
 // Validate command handler
