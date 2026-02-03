@@ -8,6 +8,7 @@ import "core:strings"
 // Create a new spec
 create_spec :: proc(name: string, epic: string = "") {
 	spec_slug := slugify(name)
+	defer delete(spec_slug)
 
 	spec_dir: string
 	if epic == "" {

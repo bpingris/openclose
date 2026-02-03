@@ -5,6 +5,7 @@ import "core:os"
 import "core:path/filepath"
 import "core:strings"
 import "core:time"
+import "core:unicode"
 
 // Directory path helpers
 get_specs_dir :: proc() -> string {
@@ -34,11 +35,20 @@ current_date :: proc() -> string {
 }
 
 slugify :: proc(name: string) -> string {
-	s := strings.clone(name)
-	s = strings.to_lower(s)
-	s, _ = strings.replace_all(s, " ", "-")
-	s, _ = strings.replace_all(s, "_", "-")
-	return s
+	sb := strings.builder_make()
+
+	defer strings.builder_destroy(&sb)
+
+	for r in name {
+		switch r {
+		case ' ', '_':
+			strings.write_rune(&sb, '-')
+		case:
+			strings.write_rune(&sb, unicode.to_lower(r))
+		}
+	}
+
+	return strings.to_string(sb)
 }
 
 make_directory_recursive :: proc(path: string) -> os.Error {

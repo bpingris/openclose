@@ -36,6 +36,54 @@ find_spec_path :: proc(spec_name: string) -> (string, bool) {
 	return "", false
 }
 
+// RFC 2119 keywords for requirement validation
+RFC2119_KEYWORDS :: []string{"MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", "OPTIONAL"}
+
+// Case-insensitive string contains check (avoids allocation)
+contains_case_insensitive :: proc(text: string, pattern: string) -> bool {
+	if len(pattern) == 0 {
+		return true
+	}
+	if len(text) < len(pattern) {
+		return false
+	}
+	
+	pattern_upper := transmute([]u8)pattern
+	text_upper := transmute([]u8)text
+	
+	for i := 0; i <= len(text) - len(pattern); i += 1 {
+		found := true
+		for j := 0; j < len(pattern); j += 1 {
+			text_char := text_upper[i + j]
+			pattern_char := pattern_upper[j]
+			
+			// Convert to uppercase for comparison
+			if text_char >= 'a' && text_char <= 'z' {
+				text_char = text_char - 'a' + 'A'
+			}
+			
+			if text_char != pattern_char {
+				found = false
+				break
+			}
+		}
+		if found {
+			return true
+		}
+	}
+	return false
+}
+
+// Check if text contains RFC 2119 keywords
+has_rfc2119_keywords :: proc(text: string) -> bool {
+	for keyword in RFC2119_KEYWORDS {
+		if contains_case_insensitive(text, keyword) {
+			return true
+		}
+	}
+	return false
+}
+
 // Validate PRD.md format
 validate_prd :: proc(prd_path: string) -> []Validation_Error {
 	errors := make([dynamic]Validation_Error)
@@ -79,6 +127,30 @@ validate_prd :: proc(prd_path: string) -> []Validation_Error {
 		append(&errors, Validation_Error{file = "PRD.md", message = "File is empty"})
 	}
 
+	// Check for RFC 2119 keywords in Requirements section
+	if strings.contains(text, "## Requirements") {
+		// Find the Requirements section content
+		req_start := strings.index(text, "## Requirements")
+		if req_start != -1 {
+			req_section := text[req_start:]
+			// Find the end of this section (next ## or end of file)
+			next_section := strings.index(req_section[1:], "## ")
+			if next_section != -1 {
+				req_section = req_section[:next_section+1]
+			}
+			
+			if !has_rfc2119_keywords(req_section) {
+				append(
+					&errors,
+					Validation_Error {
+						file = "PRD.md",
+						message = "Requirements section SHOULD use RFC 2119 keywords (MUST, SHOULD, MAY, etc.)",
+					},
+				)
+			}
+		}
+	}
+
 	return errors[:]
 }
 
@@ -97,6 +169,8 @@ validate_tasks :: proc(tasks_path: string) -> []Validation_Error {
 
 	has_phases := false
 	has_checkboxes := false
+	task_count := 0
+	tasks_with_rfc2119 := 0
 
 	for line in lines {
 		trimmed := strings.trim_space(line)
@@ -106,11 +180,25 @@ validate_tasks :: proc(tasks_path: string) -> []Validation_Error {
 			has_phases = true
 		}
 
-		// Check for checkboxes
+		// Check for checkboxes and RFC 2119 keywords
 		if strings.has_prefix(trimmed, "- [ ]") ||
 		   strings.has_prefix(trimmed, "- [x]") ||
 		   strings.has_prefix(trimmed, "- [X]") {
 			has_checkboxes = true
+			task_count += 1
+			
+			// Extract task description (after the checkbox)
+			task_desc := trimmed
+			if strings.has_prefix(trimmed, "- [ ]") {
+				task_desc = trimmed[5:]
+			} else if strings.has_prefix(trimmed, "- [x]") || strings.has_prefix(trimmed, "- [X]") {
+				task_desc = trimmed[5:]
+			}
+			task_desc = strings.trim_space(task_desc)
+			
+			if has_rfc2119_keywords(task_desc) {
+				tasks_with_rfc2119 += 1
+			}
 		}
 	}
 
@@ -134,6 +222,17 @@ validate_tasks :: proc(tasks_path: string) -> []Validation_Error {
 		)
 	}
 
+	// Check that tasks use RFC 2119 keywords
+	if task_count > 0 && tasks_with_rfc2119 == 0 {
+		append(
+			&errors,
+			Validation_Error {
+				file = "tasks.md",
+				message = "Tasks SHOULD use RFC 2119 keywords (MUST, SHOULD, MAY, etc.)",
+			},
+		)
+	}
+
 	return errors[:]
 }
 
@@ -153,20 +252,49 @@ validate_scenarios :: proc(scenarios_path: string) -> []Validation_Error {
 	has_given := false
 	has_when := false
 	has_then := false
+	scenario_count := 0
+	scenarios_with_rfc2119 := 0
+	in_scenario := false
+	current_scenario_has_rfc2119 := false
 
 	for line in lines {
 		trimmed := strings.trim_space(line)
 		upper := strings.to_upper(trimmed)
 
+		// Check for scenario headers (### Scenario)
+		if strings.has_prefix(upper, "### SCENARIO") || strings.has_prefix(upper, "## SCENARIO") {
+			// Save previous scenario RFC 2119 status
+			if in_scenario && current_scenario_has_rfc2119 {
+				scenarios_with_rfc2119 += 1
+			}
+			in_scenario = true
+			current_scenario_has_rfc2119 = false
+			scenario_count += 1
+		}
+
 		if strings.has_prefix(upper, "**GIVEN**") || strings.has_prefix(upper, "GIVEN ") {
 			has_given = true
+			if in_scenario && has_rfc2119_keywords(trimmed) {
+				current_scenario_has_rfc2119 = true
+			}
 		}
 		if strings.has_prefix(upper, "**WHEN**") || strings.has_prefix(upper, "WHEN ") {
 			has_when = true
+			if in_scenario && has_rfc2119_keywords(trimmed) {
+				current_scenario_has_rfc2119 = true
+			}
 		}
 		if strings.has_prefix(upper, "**THEN**") || strings.has_prefix(upper, "THEN ") {
 			has_then = true
+			if in_scenario && has_rfc2119_keywords(trimmed) {
+				current_scenario_has_rfc2119 = true
+			}
 		}
+	}
+
+	// Check last scenario
+	if in_scenario && current_scenario_has_rfc2119 {
+		scenarios_with_rfc2119 += 1
 	}
 
 	if !has_given {
@@ -180,6 +308,17 @@ validate_scenarios :: proc(scenarios_path: string) -> []Validation_Error {
 	}
 	if !has_then {
 		append(&errors, Validation_Error{file = "scenarios.md", message = "No Then clauses found"})
+	}
+
+	// Check that scenarios use RFC 2119 keywords
+	if scenario_count > 0 && scenarios_with_rfc2119 == 0 {
+		append(
+			&errors,
+			Validation_Error {
+				file = "scenarios.md",
+				message = "Scenarios SHOULD use RFC 2119 keywords (MUST, SHOULD, MAY, etc.)",
+			},
+		)
 	}
 
 	return errors[:]
