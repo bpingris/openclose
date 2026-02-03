@@ -32,15 +32,15 @@ Specs: Units of work stored in .openclose/specs/<name>/ containing:
 
 Archive: Completed work moved to .openclose/archive/
 
-Available Commands
+Available Commands:
 
-openclose summary - View all specs and their progress
-openclose create <name> - Create a new spec
-openclose create <name> --epic <epic> - Create a spec attached to an epic
-openclose validate <name> - Validate a spec's file format
-openclose archive <path> - Archive a spec or epic
-openclose help - Show all available commands
-openclose version - Show the current version
+    openclose summary # View all specs and their progress
+    openclose create <spec-name> # Create a new spec
+    openclose create <spec-name> --epic <epic> # Create a spec attached to an epic
+    openclose validate <name> # Validate a spec's file format
+    openclose archive <path> # Archive a spec or epic
+    openclose help # Show all available commands
+    openclose version # Show the current version
 
 When to Create a Spec
 
