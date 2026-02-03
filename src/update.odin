@@ -45,7 +45,6 @@ update_agent_commands :: proc(agent: ^Agent_Info) -> (int, int) {
 
 	fmt.printfln("Updating %s commands...", agent.display_name)
 
-	// Ensure directories exist
 	dir_err := os.make_directory(agent.commands_dir)
 	if dir_err != nil && dir_err != os.Platform_Error.EEXIST {
 		fmt.eprintfln("  Error creating directory %s: %s", agent.commands_dir, dir_err)
@@ -65,17 +64,16 @@ update_agent_commands :: proc(agent: ^Agent_Info) -> (int, int) {
 	for cmd in agent.commands {
 		file_path := fmt.tprintf("%s%s%s", agent.commands_dir, agent.subdirectory, cmd.filename)
 
-		// Build new content
 		new_content := build_command_content(cmd)
 
-		// Check if file exists and needs updating
 		if os.exists(file_path) {
 			existing_content, ok := os.read_entire_file(file_path)
 			if ok && string(existing_content) == new_content {
-				// File exists and content is identical
+				delete(existing_content)
 				skipped += 1
 				continue
 			}
+			delete(existing_content)
 		}
 
 		// Write the file

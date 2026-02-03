@@ -69,7 +69,8 @@ make_directory_recursive :: proc(path: string) -> os.Error {
 
 // Simple recursive copy of a directory
 copy_directory :: proc(src: string, dst: string) -> os.Error {
-	// Create destination directory
+	defer free_all(context.temp_allocator)
+
 	err := make_directory_recursive(dst)
 	if err != nil {
 		return err
@@ -90,18 +91,16 @@ copy_directory :: proc(src: string, dst: string) -> os.Error {
 
 	// Copy each entry
 	for entry in entries {
-		src_path := filepath.join({src, entry.name})
-		dst_path := filepath.join({dst, entry.name})
+		src_path := filepath.join({src, entry.name}, context.temp_allocator)
+		dst_path := filepath.join({dst, entry.name}, context.temp_allocator)
 
 		if entry.is_dir {
-			// Recursively copy subdirectory
 			copy_err := copy_directory(src_path, dst_path)
 			if copy_err != nil {
 				return copy_err
 			}
 		} else {
-			// Copy file
-			content, ok := os.read_entire_file(src_path)
+			content, ok := os.read_entire_file(src_path, context.temp_allocator)
 			if !ok {
 				return os.General_Error.Not_Exist
 			}

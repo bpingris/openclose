@@ -2,31 +2,47 @@ package main
 
 import "core:fmt"
 import "core:os"
+import "core:strings"
 
 print_help :: proc() {
-	fmt.println("openclose - CLI tool for organizing specs and PRDs")
-	fmt.println("")
-	fmt.println("Commands:")
-	fmt.println("  init                          Initialize .openclose directory with AGENTS.md")
-	fmt.println("  create <name>                 Create a new spec")
-	fmt.println(
-		"  create <name> --epic <epic>   Create a new spec attached to an epic (creates epic if needed)",
+	sb, sb_err := strings.builder_make()
+	if sb_err != nil {
+		fmt.eprintfln("Failed to create strings.Builder: %v", sb_err)
+	}
+
+	defer strings.builder_destroy(&sb)
+
+	strings.write_string(&sb, "openclose - CLI tool for organizing specs and PRDs\n")
+	strings.write_string(&sb, "\n")
+	strings.write_string(&sb, "Commands:\n")
+	strings.write_string(
+		&sb,
+		"  init                          Initialize .openclose directory with AGENTS.md\n",
 	)
-	fmt.println("  epic <name>                   Create a new epic")
-	fmt.println("  summary                       Show all specs with progress")
-	fmt.println("  validate <name>               Validate a spec's file formats")
-	fmt.println(
-		"  archive <path>                Archive specs/epics (e.g., specs/name or epics/epic/name)",
+	strings.write_string(&sb, "  create <name>                 Create a new spec\n")
+	strings.write_string(
+		&sb,
+		"  create <name> --epic <epic>   Create a new spec attached to an epic (creates epic if needed)\n",
 	)
-	fmt.println("  update                        Update agent command files with latest prompts")
-	fmt.println("  version                       Show the current version")
-	fmt.println("  help                          Show this help message")
+	strings.write_string(&sb, "  epic <name>                   Create a new epic\n")
+	strings.write_string(&sb, "  summary                       Show all specs with progress\n")
+	strings.write_string(&sb, "  validate <name>               Validate a spec's file formats\n")
+	strings.write_string(
+		&sb,
+		"  archive <path>                Archive specs/epics (e.g., specs/name or epics/epic/name)\n",
+	)
+	strings.write_string(
+		&sb,
+		"  update                        Update agent command files with latest prompts\n",
+	)
+	strings.write_string(&sb, "  version                       Show the current version\n")
+	strings.write_string(&sb, "  help                          Show this help message\n")
+
+	fmt.println(strings.to_string(sb))
 }
 
 
 main :: proc() {
-
-
 	if len(os.args) < 2 {
 		print_help()
 		return
