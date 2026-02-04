@@ -11,29 +11,11 @@ find_spec_path :: proc(spec_name: string) -> (string, bool) {
 
 	// Check standalone specs
 	standalone_path := filepath.join({get_specs_dir(), spec_slug})
-	defer delete(standalone_path)
 	if os.exists(standalone_path) {
 		return standalone_path, true
 	}
 
-	// Check in epics
-	epics_dir := get_epics_dir()
-	if os.exists(epics_dir) {
-		fd, err := os.open(epics_dir, os.O_RDONLY)
-		if err == nil {
-			defer os.close(fd)
-			files, _ := os.read_dir(fd, 0)
-			for f in files {
-				if f.is_dir {
-					epic_spec_path := filepath.join({epics_dir, f.name, spec_slug})
-					if os.exists(epic_spec_path) {
-						return epic_spec_path, true
-					}
-				}
-			}
-		}
-	}
-
+	delete(standalone_path)
 	return "", false
 }
 
@@ -383,6 +365,7 @@ validate_cmd :: proc() {
 
 	// Validate PRD.md
 	prd_path := filepath.join({spec_path, "PRD.md"})
+	fmt.println(prd_path)
 	if os.exists(prd_path) {
 		prd_errors := validate_prd(prd_path)
 		for err in prd_errors {

@@ -17,13 +17,6 @@ Spec_Info :: struct {
 	path:               string,
 }
 
-Epic_Info :: struct {
-	name:               string,
-	specs:              []Spec_Info,
-	total_criteria:     int,
-	completed_criteria: int,
-}
-
 Validation_Error :: struct {
 	file:    string,
 	message: string,

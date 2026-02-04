@@ -22,16 +22,12 @@ init_openclose :: proc() {
 
 	// Create subdirectories
 	specs_dir := get_specs_dir()
-	epics_dir := get_epics_dir()
 	archive_dir := get_archive_dir()
 	archive_specs_dir := get_archive_specs_dir()
-	archive_epics_dir := get_archive_epics_dir()
 
 	os.make_directory(specs_dir)
-	os.make_directory(epics_dir)
 	os.make_directory(archive_dir)
 	os.make_directory(archive_specs_dir)
-	os.make_directory(archive_epics_dir)
 
 	// Check if AGENTS.md already exists
 	if os.exists(file_path) {

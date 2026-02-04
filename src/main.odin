@@ -20,16 +20,11 @@ print_help :: proc() {
 		"  init                          Initialize .openclose directory with AGENTS.md\n",
 	)
 	strings.write_string(&sb, "  create <name>                 Create a new spec\n")
-	strings.write_string(
-		&sb,
-		"  create <name> --epic <epic>   Create a new spec attached to an epic (creates epic if needed)\n",
-	)
-	strings.write_string(&sb, "  epic <name>                   Create a new epic\n")
 	strings.write_string(&sb, "  summary                       Show all specs with progress\n")
 	strings.write_string(&sb, "  validate <name>               Validate a spec's file formats\n")
 	strings.write_string(
 		&sb,
-		"  archive <path>                Archive specs/epics (e.g., specs/name or epics/epic/name)\n",
+		"  archive <path>                Archive a spec (e.g., specs/name)\n",
 	)
 	strings.write_string(
 		&sb,
@@ -56,8 +51,6 @@ main :: proc() {
 		init_openclose()
 	case "create":
 		create_cmd()
-	case "epic":
-		epic_cmd()
 	case "summary":
 		summary_cmd()
 	case "validate":

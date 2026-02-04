@@ -9,8 +9,6 @@ TASKS_TEMPLATE :: #load("../prompts/tasks.md", string)
 
 SCENARIOS_TEMPLATE :: #load("../prompts/scenarios.md", string)
 
-EPIC_TEMPLATE :: #load("../prompts/epic.md", string)
-
 CREATE_PROMPT :: #load("../prompts/create.md", string)
 IMPL_PROMPT :: #load("../prompts/impl.md", string)
 ARCHIVE_PROMPT :: #load("../prompts/archive.md", string)

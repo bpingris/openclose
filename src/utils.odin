@@ -12,20 +12,12 @@ get_specs_dir :: proc() -> string {
 	return ".openclose/specs"
 }
 
-get_epics_dir :: proc() -> string {
-	return ".openclose/epics"
-}
-
 get_archive_dir :: proc() -> string {
 	return ".openclose/archive"
 }
 
 get_archive_specs_dir :: proc() -> string {
 	return ".openclose/archive/specs"
-}
-
-get_archive_epics_dir :: proc() -> string {
-	return ".openclose/archive/epics"
 }
 
 // String utilities

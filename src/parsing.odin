@@ -136,23 +136,3 @@ collect_specs_recursive :: proc(dir: string, specs: ^[dynamic]Spec_Info) {
 		}
 	}
 }
-
-// Collect epic information
-collect_epic_info :: proc(epic_path: string, epic_name: string) -> Epic_Info {
-	specs := make([dynamic]Spec_Info)
-	collect_specs_recursive(epic_path, &specs)
-
-	total_criteria := 0
-	completed_criteria := 0
-	for spec in specs {
-		total_criteria += spec.total_criteria
-		completed_criteria += spec.completed_criteria
-	}
-
-	return Epic_Info {
-		name = epic_name,
-		specs = specs[:],
-		total_criteria = total_criteria,
-		completed_criteria = completed_criteria,
-	}
-}
