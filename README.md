@@ -106,6 +106,13 @@ After running `openclose init`, within OpenCode you can use the following comman
 /oc-archive my-feature
 ```
 
+## Inspired By
+
+- [openspec](https://github.com/Fission-AI/OpenSpec/) - before their 1.0 release
+- [speckit](https://github.com/github/spec-kit)
+
+and other SDD tool.
+
 ## License
 
 MIT
