@@ -24,9 +24,6 @@ brew install bpingris/tap/openclose
 # Or install from the tap (two steps)
 brew tap bpingris/tap
 brew install openclose
-
-# Or install the latest development version from main branch
-brew install bpingris/tap/openclose --HEAD
 ```
 
 **Note:** Homebrew builds from source locally, so you won't encounter macOS Gatekeeper warnings that appear with downloaded binaries.
@@ -39,20 +36,6 @@ Requires the [Odin programming language](https://odin-lang.org/):
 mkdir -p build
 odin build src -out:build/openclose -o:speed -vet -strict-style
 ```
-
-### Pre-built Binaries
-
-Download pre-built binaries from the [GitHub Releases](../../releases) page.
-
-**Note:** macOS users may see a Gatekeeper warning when running pre-built binaries. To bypass:
-- Right-click the binary and select "Open" instead of double-clicking
-- Or run: `xattr -d com.apple.quarantine build/openclose`
-
-**Which installation method should I use?**
-
-- **Homebrew**: Recommended for most users. Automatically handles dependencies, updates, and avoids Gatekeeper issues.
-- **From Source**: Use if you want to modify the code or need a specific version not yet in Homebrew.
-- **Pre-built Binaries**: Use if you need a quick download and don't have Homebrew installed (requires bypassing Gatekeeper on macOS).
 
 ## Quick Start
 
@@ -73,11 +56,9 @@ Download pre-built binaries from the [GitHub Releases](../../releases) page.
 |---------|-------------|
 | `init` | Initialize `.openclose` directory with `AGENTS.md` |
 | `create <name>` | Create a new spec |
-| `create <name> --epic <epic>` | Create a spec attached to an epic |
-| `epic <name>` | Create a new epic |
 | `summary` | Show all specs with progress |
 | `validate <name>` | Validate a spec's file formats |
-| `archive <path>` | Archive a spec or epic |
+| `archive <path>` | Archive a spec |
 | `help` | Show help message |
 
 ## Spec Structure
@@ -98,43 +79,32 @@ openclose generates custom commands for popular AI assistants:
 
 These provide streamlined workflows for AI assistants to create specs, implement them, and archive completed work.
 
-## Build
+## Using with OpenCode
 
-This project uses GitHub Actions for automated multi-platform builds:
+After running `openclose init`, within OpenCode you can use the following commands to work with specs:
 
-- macOS ARM64 (Apple Silicon)
-- macOS x86_64 (Intel)
-- Linux x86_64
+| Command | Description |
+|---------|-------------|
+| `/oc-create <name>` | Create a new spec - guides you through naming and validation |
+| `/oc-impl <name>` | Implement a spec - reads the spec, validates it, and executes tasks in order |
+| `/oc-phase <number>` | Implement a specific phase of the current spec |
+| `/oc-archive <path>` | Archive a completed spec |
 
-See `.github/workflows/build.yml` for the build configuration.
+### Example Workflow
 
-## Release Process (For Maintainers)
+```
+# Create a new spec
+/oc-create an endpoint called by admin users where it returns a list of tagged users
 
-To release a new version:
+# Implement the full spec
+/oc-impl my-feature
 
-1. **Create and push a tag:**
-   ```bash
-   git tag -a v0.2.0 -m "Release v0.2.0"
-   git push origin v0.2.0
-   ```
+# Or implement just one phase
+/oc-phase 2
 
-2. **Automated workflow triggers:**
-   - The `release.yml` workflow creates a GitHub Release with auto-generated release notes
-   - The `update-tap.yml` workflow automatically updates the Homebrew formula in the [homebrew-tap](https://github.com/bpingris/homebrew-tap) repository
-   - The `build.yml` workflow creates pre-built binaries for all platforms
-
-3. **Done!** Users can now:
-   - Upgrade via Homebrew: `brew update && brew upgrade openclose`
-   - Download pre-built binaries from the [Releases](../../releases) page
-
-### Setting up the automated tap update (one-time setup)
-
-The automated Homebrew tap update requires a Personal Access Token (PAT):
-
-1. Go to GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)
-2. Generate a new token with `repo` scope
-3. In the openclose repository, go to Settings → Secrets and variables → Actions
-4. Add a new secret named `TAP_GITHUB_TOKEN` with your PAT value
+# Archive when done
+/oc-archive my-feature
+```
 
 ## License
 

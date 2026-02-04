@@ -50,6 +50,7 @@ AGENTS := []Agent_Info {
 			{"oc-create.md", CREATE_PROMPT, "oc-create", "Create a new spec using openclose cli"},
 			{"oc-impl.md", IMPL_PROMPT, "oc-impl", "Implement a given spec"},
 			{"oc-archive.md", ARCHIVE_PROMPT, "oc-archive", "Archive a given spec"},
+			{"oc-phase.md", PHASE_PROMPT, "oc-phase", "Implement a specific phase of the current spec"},
 		},
 	},
 	{
@@ -61,6 +62,7 @@ AGENTS := []Agent_Info {
 			{"create.md", CREATE_PROMPT, "create", "Create a new spec using openclose cli"},
 			{"impl.md", IMPL_PROMPT, "impl", "Implement a given spec"},
 			{"archive.md", ARCHIVE_PROMPT, "archive", "Archive a given spec"},
+			{"phase.md", PHASE_PROMPT, "phase", "Implement a specific phase of the current spec"},
 		},
 	},
 	{
@@ -77,6 +79,7 @@ AGENTS := []Agent_Info {
 			},
 			{"cursor-impl.md", IMPL_PROMPT, "cursor-impl", "Implement a given spec"},
 			{"cursor-archive.md", ARCHIVE_PROMPT, "cursor-archive", "Archive a given spec"},
+			{"cursor-phase.md", PHASE_PROMPT, "cursor-phase", "Implement a specific phase of the current spec"},
 		},
 	},
 }
