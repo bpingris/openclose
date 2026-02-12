@@ -8,6 +8,7 @@ import "core:strings"
 // Find a spec by name
 find_spec_path :: proc(spec_name: string) -> (string, bool) {
 	spec_slug := slugify(spec_name)
+	defer delete(spec_slug)
 
 	// Check standalone specs
 	standalone_path := filepath.join({get_specs_dir(), spec_slug})
@@ -78,6 +79,17 @@ has_rfc2119_keywords :: proc(text: string) -> bool {
 	return false
 }
 
+// Count lines up to a byte position in text
+get_line_number :: proc(text: string, byte_pos: int) -> int {
+	line := 1
+	for i := 0; i < byte_pos && i < len(text); i += 1 {
+		if text[i] == '\n' {
+			line += 1
+		}
+	}
+	return line
+}
+
 // Validate PRD.md content string format
 // This function can be unit tested without file I/O
 validate_prd_content :: proc(text: string) -> []Validation_Error {
@@ -87,10 +99,16 @@ validate_prd_content :: proc(text: string) -> []Validation_Error {
 	required_sections := []string{"## Problem Statement", "## Requirements", "## Technical Notes"}
 	for section in required_sections {
 		if !strings.contains(text, section) {
+			section_pos := strings.index(text, section)
+			line_num := 1
+			if section_pos != -1 {
+				line_num = get_line_number(text, section_pos)
+			}
 			append(
 				&errors,
 				Validation_Error {
 					file = "PRD.md",
+					line = line_num,
 					message = fmt.tprintf("Missing required section: %s", section),
 				},
 			)
@@ -106,12 +124,13 @@ validate_prd_content :: proc(text: string) -> []Validation_Error {
 				&errors,
 				Validation_Error {
 					file = "PRD.md",
+					line = 1,
 					message = "First line should be a title (e.g., # Spec Name)",
 				},
 			)
 		}
 	} else {
-		append(&errors, Validation_Error{file = "PRD.md", message = "File is empty"})
+		append(&errors, Validation_Error{file = "PRD.md", line = 1, message = "File is empty"})
 	}
 
 	// Check for RFC 2119 keywords in Requirements section
@@ -119,19 +138,49 @@ validate_prd_content :: proc(text: string) -> []Validation_Error {
 		// Find the Requirements section content
 		req_start := strings.index(text, "## Requirements")
 		if req_start != -1 {
-			req_section := text[req_start:]
-			// Find the end of this section (next ## or end of file)
-			next_section := strings.index(req_section[1:], "## ")
+			// Get content after "## Requirements" header (including the newline)
+			header_len := len("## Requirements")
+			req_section := text[req_start + header_len:]
+
+			// Find where next ## section starts (if any)
+			next_section := strings.index(req_section, "\n## ")
 			if next_section != -1 {
-				req_section = req_section[:next_section + 1]
+				req_section = req_section[:next_section]
 			}
 
-			if !has_rfc2119_keywords(req_section) {
+			// Check each requirement line for RFC 2119 keywords
+			req_lines := strings.split_lines(req_section, context.temp_allocator)
+			first_missing_line := 0
+			req_start_line := get_line_number(text, req_start)
+
+			for line, i in req_lines {
+				trimmed := strings.trim_space(line)
+				// Check if this is a numbered list item (e.g., "1. Something")
+				if len(trimmed) > 0 &&
+				   trimmed[0] >= '0' &&
+				   trimmed[0] <= '9' &&
+				   strings.contains(trimmed, ".") {
+					// Extract the text after the number
+					dot_idx := strings.index(trimmed, ".")
+					if dot_idx != -1 && dot_idx < len(trimmed) - 1 {
+						req_text := trimmed[dot_idx + 1:]
+						req_text = strings.trim_space(req_text)
+						if len(req_text) > 0 && !has_rfc2119_keywords(req_text) {
+							if first_missing_line == 0 {
+								first_missing_line = req_start_line + i + 1
+							}
+						}
+					}
+				}
+			}
+
+			if first_missing_line > 0 {
 				append(
 					&errors,
 					Validation_Error {
 						file = "PRD.md",
-						message = "Requirements section SHOULD use RFC 2119 keywords (MUST, SHOULD, MAY, etc.)",
+						line = first_missing_line,
+						message = "Requirements SHOULD use RFC 2119 keywords (MUST, SHOULD, MAY, etc.)",
 					},
 				)
 			}
@@ -166,13 +215,19 @@ validate_tasks_content :: proc(text: string) -> []Validation_Error {
 	has_checkboxes := false
 	task_count := 0
 	tasks_with_rfc2119 := 0
+	first_task_line := 0
+	first_phase_line := 0
+	first_task_missing_rfc2119_line := 0
 
-	for line in lines {
+	for line, i in lines {
 		trimmed := strings.trim_space(line)
 
 		// Check for phase headers
 		if strings.has_prefix(trimmed, "## ") && !strings.has_prefix(trimmed, "# Tasks") {
 			has_phases = true
+			if first_phase_line == 0 {
+				first_phase_line = i + 1
+			}
 		}
 
 		// Check for checkboxes and RFC 2119 keywords
@@ -181,6 +236,9 @@ validate_tasks_content :: proc(text: string) -> []Validation_Error {
 		   strings.has_prefix(trimmed, "- [X]") {
 			has_checkboxes = true
 			task_count += 1
+			if first_task_line == 0 {
+				first_task_line = i + 1
+			}
 
 			// Extract task description (after the checkbox)
 			task_desc := trimmed
@@ -194,6 +252,8 @@ validate_tasks_content :: proc(text: string) -> []Validation_Error {
 
 			if has_rfc2119_keywords(task_desc) {
 				tasks_with_rfc2119 += 1
+			} else if first_task_missing_rfc2119_line == 0 {
+				first_task_missing_rfc2119_line = i + 1
 			}
 		}
 	}
@@ -203,6 +263,7 @@ validate_tasks_content :: proc(text: string) -> []Validation_Error {
 			&errors,
 			Validation_Error {
 				file = "tasks.md",
+				line = first_phase_line,
 				message = "Missing phase sections (e.g., ## Phase 1: Foundation)",
 			},
 		)
@@ -213,17 +274,19 @@ validate_tasks_content :: proc(text: string) -> []Validation_Error {
 			&errors,
 			Validation_Error {
 				file = "tasks.md",
+				line = first_task_line,
 				message = "No task checkboxes found (format: - [ ] Task description)",
 			},
 		)
 	}
 
 	// Check that tasks use RFC 2119 keywords
-	if task_count > 0 && tasks_with_rfc2119 == 0 {
+	if task_count > 0 && tasks_with_rfc2119 < task_count {
 		append(
 			&errors,
 			Validation_Error {
 				file = "tasks.md",
+				line = first_task_missing_rfc2119_line,
 				message = "Tasks SHOULD use RFC 2119 keywords (MUST, SHOULD, MAY, etc.)",
 			},
 		)
@@ -260,8 +323,9 @@ validate_scenarios_content :: proc(text: string) -> []Validation_Error {
 	scenarios_with_rfc2119 := 0
 	in_scenario := false
 	current_scenario_has_rfc2119 := false
+	first_scenario_line := 0
 
-	for line in lines {
+	for line, i in lines {
 		trimmed := strings.trim_space(line)
 		upper := strings.to_upper(trimmed, context.temp_allocator)
 
@@ -274,6 +338,9 @@ validate_scenarios_content :: proc(text: string) -> []Validation_Error {
 			in_scenario = true
 			current_scenario_has_rfc2119 = false
 			scenario_count += 1
+			if first_scenario_line == 0 {
+				first_scenario_line = i + 1
+			}
 		}
 
 		if strings.has_prefix(upper, "**GIVEN**") || strings.has_prefix(upper, "GIVEN ") {
@@ -304,14 +371,20 @@ validate_scenarios_content :: proc(text: string) -> []Validation_Error {
 	if !has_given {
 		append(
 			&errors,
-			Validation_Error{file = "scenarios.md", message = "No Given clauses found"},
+			Validation_Error{file = "scenarios.md", line = 1, message = "No Given clauses found"},
 		)
 	}
 	if !has_when {
-		append(&errors, Validation_Error{file = "scenarios.md", message = "No When clauses found"})
+		append(
+			&errors,
+			Validation_Error{file = "scenarios.md", line = 1, message = "No When clauses found"},
+		)
 	}
 	if !has_then {
-		append(&errors, Validation_Error{file = "scenarios.md", message = "No Then clauses found"})
+		append(
+			&errors,
+			Validation_Error{file = "scenarios.md", line = 1, message = "No Then clauses found"},
+		)
 	}
 
 	// Check that scenarios use RFC 2119 keywords
@@ -320,6 +393,7 @@ validate_scenarios_content :: proc(text: string) -> []Validation_Error {
 			&errors,
 			Validation_Error {
 				file = "scenarios.md",
+				line = first_scenario_line,
 				message = "Scenarios SHOULD use RFC 2119 keywords (MUST, SHOULD, MAY, etc.)",
 			},
 		)
@@ -354,13 +428,14 @@ validate_cmd :: proc() {
 
 	if !found {
 		fmt.eprintfln("Spec not found: %s", spec_name)
-		fmt.println("Run 'openclose view' to see available specs")
+		fmt.println("Run 'openclose summary' to see available specs")
 		return
 	}
 
 	fmt.printfln("=== Validating spec: %s ===\n", spec_name)
 
 	all_errors := make([dynamic]Validation_Error)
+	defer delete(all_errors)
 	has_all_files := true
 
 	// Validate PRD.md
@@ -419,7 +494,11 @@ validate_cmd :: proc() {
 	if len(all_errors) > 0 {
 		fmt.println("\nErrors found:")
 		for err in all_errors {
-			fmt.printfln("  [%s] %s", err.file, err.message)
+			if err.line > 0 {
+				fmt.printfln("  [%s:%d] %s", err.file, err.line, err.message)
+			} else {
+				fmt.printfln("  [%s] %s", err.file, err.message)
+			}
 		}
 	} else if has_all_files {
 		fmt.println("\n✓ All files valid!")

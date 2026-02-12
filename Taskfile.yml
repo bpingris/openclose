@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+vars:
+  GREETING: Hello, world!
+
+tasks:
+  test:
+    cmds:
+      - odin test ./src -- {{.CLI_ARGS}}
+    silent: true
+
+  dev:
+    cmds:
+      - odin run ./src -- {{.CLI_ARGS}}
+
+  dev:debug:
+    cmds:
+      - odin run ./src -define:TRACKING_ALLOCATOR=true -- {{.CLI_ARGS}}

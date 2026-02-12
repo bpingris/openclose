@@ -19,6 +19,7 @@ Spec_Info :: struct {
 
 Validation_Error :: struct {
 	file:    string,
+	line:    int,
 	message: string,
 }
 

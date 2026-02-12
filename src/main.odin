@@ -1,7 +1,8 @@
 package main
 
 import "core:fmt"
-import "core:os"
+import "core:mem"
+import os "core:os/os2"
 import "core:strings"
 
 print_help :: proc() {
@@ -37,7 +38,31 @@ print_help :: proc() {
 }
 
 
+reset_tracking_allocator :: proc(a: ^mem.Tracking_Allocator) -> bool {
+	err := false
+
+	for _, value in a.allocation_map {
+		fmt.printf("%v: leaked %v bytes\n", value.location, value.size)
+		err = true
+	}
+
+	mem.tracking_allocator_clear(a)
+	return err
+}
+
+TRACKING_ALLOCATOR :: #config(TRACKING_ALLOCATOR, false)
+
 main :: proc() {
+	when TRACKING_ALLOCATOR {
+		fmt.println(TRACKING_ALLOCATOR)
+		default_allocator := context.allocator
+		tracking_allocator: mem.Tracking_Allocator
+		mem.tracking_allocator_init(&tracking_allocator, default_allocator)
+		context.allocator = mem.tracking_allocator(&tracking_allocator)
+
+		defer reset_tracking_allocator(&tracking_allocator)
+	}
+
 	if len(os.args) < 2 {
 		print_help()
 		return
