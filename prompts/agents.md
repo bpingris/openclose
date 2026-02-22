@@ -41,6 +41,22 @@ Available Commands:
     openclose help # Show all available commands
     openclose version # Show the current version
 
+Generated Agent Commands:
+
+    /oc-create <feature-or-name> # Create and validate a new spec
+    /oc-brainstorm <feature-idea> # Run guided feature clarification before spec creation
+    /oc-impl <spec-name> # Implement a validated spec
+    /oc-phase <number> # Implement one phase only
+    /oc-archive <spec-name> # Archive a completed spec
+
+Brainstorming Note:
+
+- MVP uses `/oc-brainstorm` as the primary brainstorming entrypoint.
+- A native `openclose brainstorm` CLI command is intentionally deferred for now.
+- Brainstorm outputs should still follow a reusable markdown schema so a future CLI command can align.
+- Brainstorm sessions can propose one spec or multiple specs when scope naturally splits.
+- Transition guidance should be conversational: implement a selected spec or continue refining in chat.
+
 When to Create a Spec
 
 Create a spec when the request:

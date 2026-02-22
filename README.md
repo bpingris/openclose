@@ -86,9 +86,17 @@ After running `openclose init`, within OpenCode you can use the following comman
 | Command | Description |
 |---------|-------------|
 | `/oc-create <name>` | Create a new spec - guides you through naming and validation |
+| `/oc-brainstorm <feature-idea>` | Run a guided brainstorming session to clarify scope before writing a spec |
 | `/oc-impl <name>` | Implement a spec - reads the spec, validates it, and executes tasks in order |
 | `/oc-phase <number>` | Implement a specific phase of the current spec |
 | `/oc-archive <path>` | Archive a completed spec |
+
+### Brainstorming Scope
+
+For MVP, brainstorming is provided via generated agent commands (for example `/oc-brainstorm ...`).
+A native `openclose brainstorm` CLI subcommand is intentionally deferred until the workflow and output schema are stabilized.
+Brainstorm summaries can propose one or more specs depending on scope boundaries.
+Transition guidance is chat-first: ask the agent to implement a selected spec, or continue refining in conversation.
 
 ### Example Workflow
 

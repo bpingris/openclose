@@ -49,6 +49,12 @@ AGENTS := []Agent_Info {
 		"",
 		[]Command_File {
 			{"oc-create.md", CREATE_PROMPT, "oc-create", "Create a new spec using openclose cli"},
+			{
+				"oc-brainstorm.md",
+				BRAINSTORM_PROMPT,
+				"oc-brainstorm",
+				"Run a guided feature brainstorming session",
+			},
 			{"oc-impl.md", IMPL_PROMPT, "oc-impl", "Implement a given spec"},
 			{"oc-archive.md", ARCHIVE_PROMPT, "oc-archive", "Archive a given spec"},
 			{"oc-phase.md", PHASE_PROMPT, "oc-phase", "Implement a specific phase of the current spec"},
@@ -61,6 +67,12 @@ AGENTS := []Agent_Info {
 		"openclose/",
 		[]Command_File {
 			{"create.md", CREATE_PROMPT, "create", "Create a new spec using openclose cli"},
+			{
+				"brainstorm.md",
+				BRAINSTORM_PROMPT,
+				"brainstorm",
+				"Run a guided feature brainstorming session",
+			},
 			{"impl.md", IMPL_PROMPT, "impl", "Implement a given spec"},
 			{"archive.md", ARCHIVE_PROMPT, "archive", "Archive a given spec"},
 			{"phase.md", PHASE_PROMPT, "phase", "Implement a specific phase of the current spec"},
@@ -77,6 +89,12 @@ AGENTS := []Agent_Info {
 				CREATE_PROMPT,
 				"cursor-create",
 				"Create a new spec using openclose cli",
+			},
+			{
+				"cursor-brainstorm.md",
+				BRAINSTORM_PROMPT,
+				"cursor-brainstorm",
+				"Run a guided feature brainstorming session",
 			},
 			{"cursor-impl.md", IMPL_PROMPT, "cursor-impl", "Implement a given spec"},
 			{"cursor-archive.md", ARCHIVE_PROMPT, "cursor-archive", "Archive a given spec"},

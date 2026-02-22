@@ -111,6 +111,7 @@ make_directory_recursive :: proc(path: string) -> os.Error {
 	}
 
 	parent := filepath.dir(path)
+	defer delete(parent)
 	if parent != "" && parent != "." && parent != "/" {
 		err := make_directory_recursive(parent)
 		if err != nil {
