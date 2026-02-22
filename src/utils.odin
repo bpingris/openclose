@@ -32,15 +32,77 @@ slugify :: proc(name: string) -> string {
 	defer strings.builder_destroy(&sb)
 
 	for r in name {
-		switch r {
-		case ' ', '_':
+		switch {
+		case r >= 'a' && r <= 'z':
+			strings.write_rune(&sb, r)
+		case r >= 'A' && r <= 'Z':
+			strings.write_rune(&sb, unicode.to_lower(r))
+		case r >= '0' && r <= '9':
+			strings.write_rune(&sb, r)
+		case r == '-' || r == '_' || r == ' ' || r == '/' || r == '\\' || r == '.':
 			strings.write_rune(&sb, '-')
 		case:
-			strings.write_rune(&sb, unicode.to_lower(r))
+			strings.write_rune(&sb, '-')
 		}
 	}
 
 	return strings.clone(strings.to_string(sb))
+}
+
+normalize_spec_name :: proc(name: string) -> (string, bool) {
+	if strings.contains(name, "/") || strings.contains(name, "\\") {
+		return "", false
+	}
+
+	spec_slug := slugify(name)
+
+	if len(spec_slug) == 0 {
+		delete(spec_slug)
+		return "", false
+	}
+
+	has_visible_char := false
+	for ch in spec_slug {
+		if ch != '-' {
+			has_visible_char = true
+			break
+		}
+	}
+
+	if !has_visible_char {
+		delete(spec_slug)
+		return "", false
+	}
+
+	return spec_slug, true
+}
+
+is_safe_specs_subpath :: proc(path: string) -> bool {
+	if len(path) == 0 {
+		return false
+	}
+
+	if path[0] == '/' || path[len(path) - 1] == '/' {
+		return false
+	}
+
+	segment_start := 0
+	for i := 0; i <= len(path); i += 1 {
+		if i == len(path) || path[i] == '/' {
+			if i == segment_start {
+				return false
+			}
+
+			segment := path[segment_start:i]
+			if segment == "." || segment == ".." || strings.contains(segment, "\\") {
+				return false
+			}
+
+			segment_start = i + 1
+		}
+	}
+
+	return true
 }
 
 make_directory_recursive :: proc(path: string) -> os.Error {
@@ -54,6 +116,10 @@ make_directory_recursive :: proc(path: string) -> os.Error {
 		if err != nil {
 			return err
 		}
+	}
+
+	if os.exists(path) {
+		return nil
 	}
 
 	return os.make_directory(path)

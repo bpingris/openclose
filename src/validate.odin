@@ -7,7 +7,10 @@ import "core:strings"
 
 // Find a spec by name
 find_spec_path :: proc(spec_name: string) -> (string, bool) {
-	spec_slug := slugify(spec_name)
+	spec_slug, ok := normalize_spec_name(spec_name)
+	if !ok {
+		return "", false
+	}
 	defer delete(spec_slug)
 
 	// Check standalone specs
@@ -440,7 +443,6 @@ validate_cmd :: proc() {
 
 	// Validate PRD.md
 	prd_path := filepath.join({spec_path, "PRD.md"})
-	fmt.println(prd_path)
 	if os.exists(prd_path) {
 		prd_errors := validate_prd(prd_path)
 		for err in prd_errors {

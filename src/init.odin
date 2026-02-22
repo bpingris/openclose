@@ -120,22 +120,18 @@ check_existing_command_files :: proc(agent: ^Agent_Info) -> []string {
 }
 
 create_agent_commands :: proc(agent: ^Agent_Info) {
-	dir_err := os.make_directory(agent.commands_dir)
+	dir_err := make_directory_recursive(agent.commands_dir)
 	if dir_err != nil {
-		if dir_err != os.Platform_Error.EEXIST {
-			fmt.eprintfln("error creating %s: %s", agent.commands_dir, dir_err)
-			return
-		}
+		fmt.eprintfln("error creating %s: %s", agent.commands_dir, dir_err)
+		return
 	}
 
 	if len(agent.subdirectory) > 0 {
 		subdir_path := fmt.tprintf("%s%s", agent.commands_dir, agent.subdirectory)
-		subdir_err := os.make_directory(subdir_path)
+		subdir_err := make_directory_recursive(subdir_path)
 		if subdir_err != nil {
-			if subdir_err != os.Platform_Error.EEXIST {
-				fmt.eprintfln("error creating %s: %s", subdir_path, subdir_err)
-				return
-			}
+			fmt.eprintfln("error creating %s: %s", subdir_path, subdir_err)
+			return
 		}
 	}
 

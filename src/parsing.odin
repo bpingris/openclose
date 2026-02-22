@@ -75,8 +75,20 @@ parse_tasks_for_completion :: proc(
 		return 0, 0, nil
 	}
 	defer delete(content)
+	defer free_all(context.temp_allocator)
 
-	total, completed, phases = parse_tasks_content(string(content))
+	parsed_total, parsed_completed, parsed_phases := parse_tasks_content(string(content))
+	total = parsed_total
+	completed = parsed_completed
+
+	if len(parsed_phases) > 0 {
+		phases = make([]Phase_Info, len(parsed_phases))
+		for parsed_phase, i in parsed_phases {
+			phases[i] = parsed_phase
+			phases[i].name = strings.clone(parsed_phase.name)
+		}
+	}
+
 	return total, completed, phases
 }
 

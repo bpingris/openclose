@@ -45,16 +45,16 @@ update_agent_commands :: proc(agent: ^Agent_Info) -> (int, int) {
 
 	fmt.printfln("Updating %s commands...", agent.display_name)
 
-	dir_err := os.make_directory(agent.commands_dir)
-	if dir_err != nil && dir_err != os.Platform_Error.EEXIST {
+	dir_err := make_directory_recursive(agent.commands_dir)
+	if dir_err != nil {
 		fmt.eprintfln("  Error creating directory %s: %s", agent.commands_dir, dir_err)
 		return updated, skipped
 	}
 
 	if len(agent.subdirectory) > 0 {
 		subdir_path := fmt.tprintf("%s%s", agent.commands_dir, agent.subdirectory)
-		subdir_err := os.make_directory(subdir_path)
-		if subdir_err != nil && subdir_err != os.Platform_Error.EEXIST {
+		subdir_err := make_directory_recursive(subdir_path)
+		if subdir_err != nil {
 			fmt.eprintfln("  Error creating directory %s: %s", subdir_path, subdir_err)
 			return updated, skipped
 		}

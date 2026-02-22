@@ -7,7 +7,12 @@ import "core:strings"
 
 // Create a new spec
 create_spec :: proc(name: string) {
-	spec_slug := slugify(name)
+	spec_slug, ok := normalize_spec_name(name)
+	if !ok {
+		fmt.eprintfln("invalid spec name: %s", name)
+		fmt.println("Spec name must contain letters or numbers")
+		return
+	}
 	defer delete(spec_slug)
 
 	spec_dir := filepath.join({get_specs_dir(), spec_slug})

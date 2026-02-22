@@ -20,7 +20,7 @@ find_item :: proc(name: string) -> Search_Result {
 	}
 
 	// Check in specs/
-	specs_path := filepath.join({".openclose", "specs", name})
+	specs_path := filepath.join({get_specs_dir(), name})
 	if os.exists(specs_path) {
 		result.found_in_specs = true
 		result.specs_path = specs_path
@@ -83,9 +83,16 @@ archive_cmd :: proc() {
 
 	// Check if it's an explicit path (starts with specs/)
 	if strings.has_prefix(input, "specs/") {
+		relative_path := strings.trim_prefix(input, "specs/")
+		if !is_safe_specs_subpath(relative_path) {
+			fmt.eprintfln("Invalid path: '%s'", input)
+			fmt.println("Path must stay within specs/ and cannot contain '.' or '..' segments")
+			return
+		}
+
 		// Use explicit path as provided
-		full_source = filepath.join({".openclose", input})
-		display_path = input
+		full_source = filepath.join({get_specs_dir(), relative_path})
+		display_path = fmt.tprintf("specs/%s", relative_path)
 
 		if !os.exists(full_source) {
 			fmt.eprintfln("Not found: '%s'", input)
@@ -93,17 +100,24 @@ archive_cmd :: proc() {
 		}
 
 		// Determine archive destination
-		item_name := filepath.base(input)
+		item_name := filepath.base(relative_path)
 		archive_dest = filepath.join({get_archive_specs_dir(), item_name})
 	} else {
 		// Bare name - search in specs/
-		result := find_item(input)
+		spec_slug, ok := normalize_spec_name(input)
+		if !ok {
+			fmt.eprintfln("Invalid spec name: '%s'", input)
+			return
+		}
+		defer delete(spec_slug)
+
+		result := find_item(spec_slug)
 
 		if result.found_in_specs {
 			// Found in specs/
 			full_source = result.specs_path
-			display_path = fmt.tprintf("specs/%s", input)
-			archive_dest = filepath.join({get_archive_specs_dir(), input})
+			display_path = fmt.tprintf("specs/%s", spec_slug)
+			archive_dest = filepath.join({get_archive_specs_dir(), spec_slug})
 		} else {
 			// Not found
 			fmt.eprintfln("Not found: '%s' (searched in specs/)", input)

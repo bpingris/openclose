@@ -36,9 +36,8 @@ Available Commands:
 
     openclose summary # View all specs and their progress
     openclose create <spec-name> # Create a new spec
-    openclose create <spec-name> --epic <epic> # Create a spec attached to an epic
     openclose validate <name> # Validate a spec's file format
-    openclose archive <path> # Archive a spec or epic
+    openclose archive <path> # Archive a spec
     openclose help # Show all available commands
     openclose version # Show the current version
 
